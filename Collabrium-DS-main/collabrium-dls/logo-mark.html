@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Collabrium — animated mark</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  /*
+    The animated "o" from logo.html on its own, for places too small for
+    the full wordmark: SidebarNav's collapsed header when no department
+    is selected (see DESIGN-SYSTEM.md's SidebarNav, Header logo rule).
+    Same five frames, same order (Gold > Water > Wood > Fire > Earth) and
+    same timing as logo.html, so the two read as one mark. No padding:
+    the artwork fills the frame edge to edge, so an embed sizes it by
+    the iframe's own width and height.
+  */
+  html,body{margin:0; width:100%; height:100%; background:transparent; overflow:hidden;}
+  svg{display:block; width:100%; height:100%;}
+</style>
+</head>
+<body>
+
+  <svg viewBox="0 0 104 104" aria-hidden="true" focusable="false">
+    <defs>
+      <clipPath id="oClip">
+        <rect x="0" y="0" width="104" height="104"></rect>
+      </clipPath>
+    </defs>
+    <g clip-path="url(#oClip)">
+      <g id="filmstrip">
+            <path transform="translate(0,0) scale(0.707483)" fill="#FFA425" d="M73.5 0C114.093 0 147 32.9071 147 73.5C147 114.093 114.093 147 73.5 147C32.9071 147 0 114.093 0 73.5C7.00953e-05 32.9071 32.9071 7.01044e-05 73.5 0ZM53.4824 49.4707C51.2734 49.4707 49.4827 51.2618 49.4824 53.4707V93.5293C49.4826 95.7383 51.2734 97.5293 53.4824 97.5293H93.54C95.749 97.5293 97.5398 95.7382 97.54 93.5293V53.4707C97.5398 51.2618 95.749 49.4707 93.54 49.4707H53.4824Z"></path>
+            <path transform="translate(0,104) scale(0.866667)" fill="#1473E6" d="M62.9111 9.31738C61.3452 7.58456 58.626 7.55792 57.0234 9.25684C34.9752 32.6352 22.6467 46.7383 17.3193 63.2764C15.8162 67.0014 15.0001 70.9881 15 75.1328C15.0001 95.7493 35.1472 112.462 60 112.462C84.8528 112.462 105 95.7493 105 75.1328C105 70.3941 103.934 65.8621 101.992 61.6914C99.0762 54.2425 94.3528 46.7499 88.4863 39.04C88.3366 38.8433 88.1737 38.6681 88.0029 38.5107L88 38.5L63.543 10.1289C63.411 9.90929 63.2572 9.7007 63.082 9.50684C63.0251 9.44379 62.9681 9.38047 62.9111 9.31738Z"></path>
+            <path transform="translate(0,208) scale(0.866667)" fill="#FF7A90" d="M17.0471 9.17755C18.6062 7.61254 21.1381 7.60898 22.7131 9.15802C31.9806 18.2737 39.2309 24.7671 45.426 29.0711C46.3621 29.7215 47.2557 30.3068 48.1086 30.8348V12.1365C48.1086 9.92739 49.8995 8.13653 52.1086 8.13653H68.1086C70.3175 8.13679 72.1086 9.92756 72.1086 12.1365V30.9715C72.9935 30.427 73.923 29.8197 74.8986 29.1404C81.054 24.8548 88.2602 18.3639 97.4738 9.21271C99.0413 7.65605 101.573 7.64598 103.14 9.20294L113.072 19.0701C114.64 20.6271 114.648 23.1612 113.081 24.7186C103.601 34.1426 95.2435 41.7833 87.4689 47.1961C82.4772 50.6715 77.4003 53.4581 72.1086 55.1873V63.2918C77.4004 65.021 82.4772 67.8086 87.4689 71.284C95.2433 76.6968 103.601 84.3367 113.081 93.7606C114.648 95.318 114.64 97.853 113.072 99.41L103.14 109.277C101.573 110.834 99.0412 110.823 97.4738 109.266C88.2604 100.115 81.054 93.6253 74.8986 89.3397C73.923 88.6604 72.9936 88.0522 72.1086 87.5076V112.137H48.1086V87.6434C47.2554 88.1715 46.3624 88.7584 45.426 89.409C39.2309 93.713 31.9806 100.205 22.7131 109.321C21.1382 110.87 18.6063 110.867 17.0471 109.303L7.16524 99.3836C5.60654 97.8186 5.61076 95.2848 7.18477 93.7352C16.7044 84.3645 25.0901 76.7489 32.8732 71.3416C37.8279 67.8994 42.8638 65.1213 48.1086 63.3748V55.1043C42.8639 53.3579 37.8278 50.5806 32.8732 47.1385C25.0901 41.7312 16.7044 34.1156 7.18477 24.7449C5.61047 23.1953 5.60624 20.6605 7.16524 19.0955L17.0471 9.17755Z"></path>
+            <path transform="translate(0,312) scale(0.866667)" fill="#FF5825" d="M57.0892 9.31738C58.6552 7.58445 61.3742 7.55792 62.9768 9.25715C85.0251 32.6356 97.3533 46.7383 102.681 63.2765C104.184 67.0017 105 70.9882 105 75.133C105 95.7495 84.8528 112.462 60 112.462C35.1472 112.462 15.0001 95.7495 15 75.133C15 70.3942 16.0665 65.8623 18.0078 61.6916C20.9238 54.2425 25.6468 46.7495 31.5134 39.0395C33.5315 36.3873 37.6697 37.3654 38.3955 40.6181L43.626 64.0597C45.1465 70.8748 52.1062 75.2636 58.9434 73.7189C65.5505 72.2261 69.5216 65.7474 67.8398 59.2043L56.0117 13.184C55.6776 11.8838 56.018 10.5027 56.9181 9.50672C56.9751 9.44363 57.0322 9.38052 57.0892 9.31738Z"></path>
+            <path transform="translate(0,416) scale(0.866667)" fill="#00C26E" d="M57.0449 9.30511C58.631 7.56527 61.3693 7.56498 62.9561 9.30414L99.1602 48.9877C100.553 50.5144 100.554 52.851 99.1621 54.3784L68.5947 87.9116H108C110.209 87.9116 112 89.7024 112 91.9116V107.912C112 110.121 110.209 111.912 108 111.912H12C9.7909 111.912 8.00006 110.121 8 107.912V91.9116C8 89.7024 9.79086 87.9116 12 87.9116H52.1797L21.2305 53.9868C19.8376 52.46 19.8363 50.1235 21.2285 48.5961L57.0449 9.30511Z"></path>
+            <path transform="translate(0,520) scale(0.707483)" fill="#FFA425" d="M73.5 0C114.093 0 147 32.9071 147 73.5C147 114.093 114.093 147 73.5 147C32.9071 147 0 114.093 0 73.5C7.00953e-05 32.9071 32.9071 7.01044e-05 73.5 0ZM53.4824 49.4707C51.2734 49.4707 49.4827 51.2618 49.4824 53.4707V93.5293C49.4826 95.7383 51.2734 97.5293 53.4824 97.5293H93.54C95.749 97.5293 97.5398 95.7382 97.54 93.5293V53.4707C97.5398 51.2618 95.749 49.4707 93.54 49.4707H53.4824Z"></path>
+          </g>
+    </g>
+  </svg>
+
+<script>
+const names = ["gold","water","wood","fire","earth"];
+const SLOT = 104;
+const filmstrip = document.getElementById('filmstrip');
+
+let slot = 0;
+
+function easeInOut(t){return t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;}
+
+function step(){
+  const fromY = -(slot * SLOT);
+  const toY = -((slot+1) * SLOT);
+  const moveDur = 480;
+  const isGoldNext = names[(slot+1) % names.length] === "gold";
+  const holdDur = isGoldNext ? 1300 : 320;
+  const start = performance.now();
+
+  function frame(now){
+    const t = Math.min(1, (now - start) / moveDur);
+    const y = fromY + (toY - fromY) * easeInOut(t);
+    filmstrip.setAttribute('transform', 'translate(0,' + y + ')');
+    if(t < 1){
+      requestAnimationFrame(frame);
+    } else {
+      slot++;
+      if(slot === names.length){
+        setTimeout(() => {
+          filmstrip.setAttribute('transform', 'translate(0,0)');
+          slot = 0;
+          setTimeout(() => requestAnimationFrame(step), holdDur * 0.3);
+        }, holdDur);
+      } else {
+        setTimeout(() => requestAnimationFrame(step), holdDur);
+      }
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+// Reduced motion: hold on the first (Gold) frame instead of cycling.
+if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches) step();
+</script>
+</body>
+</html>
