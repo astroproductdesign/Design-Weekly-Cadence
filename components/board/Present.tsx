@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowsOut, CalendarPlus, CaretLeft, CaretRight, ListChecks, Plus, X } from "@phosphor-icons/react";
 import { addActionItem } from "@/lib/actions";
+import { activePeople } from "@/lib/queries";
 import { COL_META, COLS, type BoardCard, type Col } from "@/lib/board";
 import { importantItems, projectTree } from "@/lib/queries";
 import { sprintRangeLabel, weekLabel } from "@/lib/sprint";
@@ -11,6 +12,7 @@ import { setUI } from "@/lib/ui-store";
 import { showToast } from "../Toaster";
 import { RichText } from "../RichText";
 import { Avatar, ColIcon, DueChip, firstName, Logo, pc, SizeDots } from "../ui";
+import { MultiSelect } from "../fields";
 import { ActionItems, AgendaItem, DateForm } from "./Side";
 import { useBoard } from "./useBoard";
 
@@ -60,11 +62,11 @@ function TaskColumn({ col, cards, tasks }: { col: Col; cards: BoardCard[]; tasks
   );
 }
 
-type Slide = { k: "dates" | "blockers" | "actions"; t: string } | { k: "project"; t: string; p: Project & { children: Project[] } };
+type Slide = { k: "dates" | "blockers"; t: string } | { k: "project"; t: string; p: Project & { children: Project[] } };
 
 /** Full-screen slides for the Tuesday check-in. Updates live as people edit. */
 export function Present() {
-  const { db, n, cards } = useBoard();
+  const { db, me, n, cards } = useBoard();
   const projects = projectTree(db, { includeArchived: true }).filter((p) =>
     cards.some((c) => !c.toSort && (c.u.project_id === p.id || p.children.some((ch) => ch.id === c.u.project_id))),
   );
@@ -72,12 +74,17 @@ export function Present() {
     { k: "dates", t: "Important dates/info" },
     ...projects.map((p) => ({ k: "project" as const, t: p.name, p })),
     { k: "blockers", t: "Blockers" },
-    { k: "actions", t: "Action items" },
   ];
   const [i, setI] = useState(0);
   const [adding, setAdding] = useState(false);
   const [addingDate, setAddingDate] = useState(false);
   const [text, setText] = useState("");
+  const [owners, setOwners] = useState<string[]>(me ? [me] : []);
+  // Esc closes an open pop-up first; only with none open does it leave Present.
+  const popup = useRef(false);
+  useEffect(() => {
+    popup.current = adding || addingDate;
+  }, [adding, addingDate]);
   const idx = Math.min(i, slides.length - 1);
   const s = slides[idx];
 
@@ -92,14 +99,22 @@ export function Present() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof Element && e.target.closest("input, textarea, select")) return;
+      const inField = e.target instanceof Element && !!e.target.closest("input, textarea, select");
+      if (e.key === "Escape") {
+        if (popup.current) {
+          e.preventDefault();
+          setAdding(false);
+          setAddingDate(false);
+        } else if (!inField) setUI({ present: false });
+        return;
+      }
+      if (inField) return;
       if (["ArrowRight", "PageDown", " "].includes(e.key)) {
         e.preventDefault();
         setI((x) => Math.min(slides.length - 1, x + 1));
       } else if (["ArrowLeft", "PageUp"].includes(e.key)) {
         setI((x) => Math.max(0, x - 1));
-      } else if (e.key === "Escape") setUI({ present: false });
-      else if (e.key.toLowerCase() === "a" && !e.metaKey && !e.ctrlKey) {
+      } else if (e.key.toLowerCase() === "a" && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
         setAddingDate(false);
         setAdding(true);
@@ -124,7 +139,7 @@ export function Present() {
         </span>
         <span style={{ marginLeft: "auto" }} />
         <button type="button" className="btn btn-secondary btn-sm" onClick={() => (setAdding(false), setAddingDate(true))}>
-          <CalendarPlus /> Date <kbd>D</kbd>
+          <CalendarPlus /> Important dates <kbd>D</kbd>
         </button>
         <button type="button" className="btn btn-secondary btn-sm" onClick={() => (setAddingDate(false), setAdding(true))}>
           <Plus /> Action item <kbd>A</kbd>
@@ -149,13 +164,24 @@ export function Present() {
         {s.k === "dates" && (
           <>
             <p className="label">First up</p>
-            <h1>
-              <Logo size={52} /> Important dates/info
-            </h1>
-            <div className="panel" style={{ maxWidth: 900, padding: 8 }}>
+            <div className="first-grid">
+              <section>
+                <h1>
+                  <Logo size={52} /> Important dates/info
+                </h1>
+                <div className="panel" style={{ padding: 8 }}>
               {importantItems(db, n).map((d) => (
-                <AgendaItem key={d.id} d={d} big />
-              ))}
+                    <AgendaItem key={d.id} d={d} big />
+                  ))}
+                  {importantItems(db, n).length === 0 && <p className="panel-empty">Nothing coming up.</p>}
+                </div>
+              </section>
+              <section>
+                <h1>
+                  <Logo icon={ListChecks} size={52} /> Action items
+                </h1>
+                <ActionItems big />
+              </section>
             </div>
           </>
         )}
@@ -234,21 +260,10 @@ export function Present() {
             )}
           </>
         )}
-        {s.k === "actions" && (
-          <>
-            <p className="label">Wrap-up</p>
-            <h1>
-              <Logo icon={ListChecks} size={52} /> Action items
-            </h1>
-            <div className="big-list">
-              <ActionItems big />
-            </div>
-          </>
-        )}
       </div>
 
       {addingDate && (
-        <div className="present-add present-date" onKeyDown={(e) => e.key === "Escape" && setAddingDate(false)}>
+        <div className="present-add present-date" onKeyDown={(e) => e.key === "Escape" && (e.stopPropagation(), setAddingDate(false))}>
           <DateForm onDone={() => setAddingDate(false)} />
         </div>
       )}
@@ -259,20 +274,28 @@ export function Present() {
           onSubmit={(e) => {
             e.preventDefault();
             if (!text.trim()) return;
-            addActionItem(text, [], null, n);
+            addActionItem(text, owners, null, n);
             setText("");
             showToast("Action item added");
           }}
-          onKeyDown={(e) => e.key === "Escape" && setAdding(false)}
+          onKeyDown={(e) => e.key === "Escape" && (e.stopPropagation(), setAdding(false))}
         >
           <input
             className="field"
-            style={{ height: 44, fontSize: 16, fontWeight: 700 }}
+            style={{ height: 44, fontSize: 16, fontWeight: 700, flex: "1 1 260px", width: "auto" }}
             autoFocus
             placeholder="New action item, then Enter"
             aria-label="New action item"
             value={text}
             onChange={(e) => setText(e.target.value)}
+          />
+          <MultiSelect
+            label="Who is it for?"
+            placeholder="Add people"
+            value={owners}
+            onChange={setOwners}
+            style={{ flex: "0 1 200px", width: "auto" }}
+            options={activePeople(db).map((p) => ({ value: p.id, label: p.id === me ? `${firstName(p.name)} (you)` : firstName(p.name), lead: <Avatar person={p} size={20} /> }))}
           />
           <button className="btn btn-primary" style={{ height: 44 }}>
             Add
@@ -305,7 +328,7 @@ export function Present() {
           <CaretRight />
         </button>
       </div>
-      <div className="keys">← → move · A add action item · D add date · Esc close</div>
+      <div className="keys">← → move · A add action item · D important dates · Esc close</div>
     </div>
   );
 }
