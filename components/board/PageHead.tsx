@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowsClockwise, PresentationChart } from "@phosphor-icons/react";
+import { PresentationChart } from "@phosphor-icons/react";
 import { usualProjectIds } from "@/lib/queries";
 import { sprintRangeLabel, weekLabel } from "@/lib/sprint";
 import { setUI } from "@/lib/ui-store";
@@ -13,14 +13,13 @@ export function PageHead() {
   const person = db.people[me];
   if (!person) return null;
 
-  const mine = cards.filter((c) => c.u.person_id === me && !c.toSort);
+  const mine = cards.filter((c) => c.u.person_id === me);
   const usual = usualProjectIds(db, me, current);
   const touched = new Set(mine.filter((c) => c.u.sprint_number === current).map((c) => c.u.project_id));
   const updated = usual.filter((id) => touched.has(id)).length;
-  const toSort = cards.filter((c) => c.toSort && c.u.person_id === me).length;
-  const caughtUp = usual.length ? updated >= usual.length && !toSort : mine.length > 0;
+  const caughtUp = usual.length ? updated >= usual.length : mine.length > 0;
   const pct = usual.length ? Math.round((updated / usual.length) * 100) : mine.length ? 100 : 0;
-  const total = cards.filter((c) => !c.toSort).length;
+  const total = cards.length;
   const folks = new Set(cards.map((c) => c.u.person_id)).size;
 
   return (
@@ -46,11 +45,6 @@ export function PageHead() {
                 <i style={{ width: `${pct}%` }} />
               </div>
               <span className="meta">{usual.length ? `${updated} of ${usual.length} usual projects updated` : `${mine.length} cards so far`}</span>
-              {toSort > 0 && (
-                <button type="button" className="pill pill-warn" onClick={() => setUI({ catchUp: true, open: null, composer: null })}>
-                  <ArrowsClockwise /> {toSort} from last week to sort
-                </button>
-              )}
             </div>
           )}
         </div>

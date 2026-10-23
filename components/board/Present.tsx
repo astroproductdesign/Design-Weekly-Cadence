@@ -32,7 +32,7 @@ function TaskColumn({ col, cards, tasks }: { col: Col; cards: BoardCard[]; tasks
         <section className="pt-task" key={g.id}>
           <h3>{tasks[g.id]?.title}</h3>
           <ul>
-            {g.cards.map(({ u, toSort }) => {
+            {g.cards.map(({ u }) => {
               const help = u.help_from_person_id ? db.people[u.help_from_person_id]?.name : u.help_from_text;
               return (
                 <li key={u.id}>
@@ -47,8 +47,6 @@ function TaskColumn({ col, cards, tasks }: { col: Col; cards: BoardCard[]; tasks
                     <span className="pt-meta">
                       {u.size && <SizeDots size={u.size} />}
                       <DueChip due={u.due_date} done={col === "done"} />
-                      {toSort && <span className="pill pill-warn">From {weekLabel(u.sprint_number)}</span>}
-                      {col === "doing" && u.carry_count >= 2 && <span className="pill pill-danger">Stuck {u.carry_count}×</span>}
                       {col === "blocked" && <span className="pill pill-danger">Needs {help || "a hand"}</span>}
                     </span>
                   </div>
@@ -68,7 +66,7 @@ type Slide = { k: "dates" | "blockers"; t: string } | { k: "project"; t: string;
 export function Present() {
   const { db, me, n, cards } = useBoard();
   const projects = projectTree(db, { includeArchived: true }).filter((p) =>
-    cards.some((c) => !c.toSort && (c.u.project_id === p.id || p.children.some((ch) => ch.id === c.u.project_id))),
+    cards.some((c) => (c.u.project_id === p.id || p.children.some((ch) => ch.id === c.u.project_id))),
   );
   const slides: Slide[] = [
     { k: "dates", t: "Important dates/info" },

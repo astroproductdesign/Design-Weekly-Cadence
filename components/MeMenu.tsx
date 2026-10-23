@@ -8,7 +8,7 @@ import { Blob, blobOf, BLOB_COLOR_NAMES, BLOB_COLORS } from "./Blob";
 import { Popover } from "./Popover";
 import { cx, firstName } from "./ui";
 
-/** Top-bar person button: pick your blob's colour, or switch to someone else. */
+/** Top-bar person button: pick your blob's colour, or sign out. */
 export function MeMenu({ me }: { me: Person }) {
   const trigger = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
@@ -63,7 +63,7 @@ export function MeMenu({ me }: { me: Person }) {
                 setCurrentPerson(null);
               }}
             >
-              <SignOut /> Not you? Switch person
+              <SignOut /> Sign out
             </button>
           </div>
         </Popover>

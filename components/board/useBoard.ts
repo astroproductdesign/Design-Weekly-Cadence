@@ -15,7 +15,7 @@ export function useBoard() {
   const me = useStore((s) => s.currentPersonId) ?? "";
   const current = currentSprintNumber();
   const n = useStore((s) => s.viewSprint) ?? current;
-  const cards = useMemo(() => boardCards(db, n, current), [db, n, current]);
+  const cards = useMemo(() => boardCards(db, n), [db, n]);
   return { db, me, current, n, history: n < current, future: n > current, cards };
 }
 
@@ -48,7 +48,7 @@ export function moveWithFeedback(card: BoardCard, col: Col, projectId: string | 
   const sprint = viewSprint ?? currentSprintNumber();
   const projectChanged = !!projectId && projectId !== card.u.project_id;
   const taskChanged = !!taskId && taskId !== card.u.task_id;
-  if (col === card.col && !projectChanged && !taskChanged && !card.toSort) return;
+  if (col === card.col && !projectChanged && !taskChanged) return;
   const undo = moveCard(db, card, col, projectId, sprint, taskChanged ? taskId : undefined);
   const owner = card.u.person_id === currentPersonId ? "" : `${firstName(db.people[card.u.person_id]?.name)}'s card `;
   if (col === "done" && card.col !== "done") {

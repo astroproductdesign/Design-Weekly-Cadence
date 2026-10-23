@@ -92,7 +92,7 @@ export function Composer({ lane, col, task: presetTask }: { lane: string; col: C
       <textarea
         ref={ta}
         className="field"
-        rows={2}
+        rows={4}
         aria-label={COL_META[col].prompt}
         placeholder={COL_META[col].prompt}
         value={text}

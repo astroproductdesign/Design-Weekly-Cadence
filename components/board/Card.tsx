@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowsClockwise, Check, Clock, DotsSixVertical, HandWaving, Smiley, Trash, WarningOctagon, X, Circle, CheckCircle } from "@phosphor-icons/react";
+import { Clock, DotsSixVertical, HandWaving, Smiley, Trash, Circle, CheckCircle } from "@phosphor-icons/react";
 import { findOrCreateTask, toggleReaction, setBlockerResolved } from "@/lib/actions";
-import { COL_META, dropCard, type BoardCard } from "@/lib/board";
+import { COL_META, type BoardCard } from "@/lib/board";
 import { startDrag, justDragged } from "@/lib/dnd";
 import { ageInDays, tasksForProject } from "@/lib/queries";
-import { dayMonth, weekLabel } from "@/lib/sprint";
+import { dayMonth } from "@/lib/sprint";
 import { deleteRow, patchRow, restoreRow, useStore } from "@/lib/store";
 import { setUI, useUI } from "@/lib/ui-store";
 import { Combobox, DatePicker } from "../fields";
@@ -36,6 +36,8 @@ export function Card({ card, big }: { card: BoardCard; big?: boolean }) {
   for (const r of Object.values(db.reactions))
     if (r.target_id === u.id) reactions.set(r.emoji, [...(reactions.get(r.emoji) ?? []), r.person_id]);
 
+  // Your own open card turns into its editor: the text, size and date live in the form, not twice.
+  const editing = open && mine && !history;
   const toggleOpen = () => setUI({ open: open ? null : u.id, composer: null });
 
   return (
@@ -72,24 +74,19 @@ export function Card({ card, big }: { card: BoardCard; big?: boolean }) {
           <DotsSixVertical />
         </span>
       )}
-      <div className="card-text">{u.text ? <RichText text={u.text} /> : task?.title}</div>
-      {blocked && help && (
+      {!editing && <div className="card-text">{u.text ? <RichText text={u.text} /> : task?.title}</div>}
+      {blocked && help && !editing && (
         <div className="help">
           <HandWaving /> Needs {help}
         </div>
       )}
-      <div className="card-foot">
+      {!editing && <div className="card-foot">
         <span className="who">
           <Avatar person={person} size={big ? 26 : 20} />
           {firstName(person?.name)}
         </span>
         {u.size && <SizeDots size={u.size} />}
         <DueChip due={u.due_date} done={card.col === "done"} />
-        {card.col === "doing" && u.carry_count >= 2 && (
-          <span className="pill pill-danger" title={`Carried over ${u.carry_count} weeks in a row`}>
-            <WarningOctagon weight="fill" /> Stuck {u.carry_count}×
-          </span>
-        )}
         {blocked && !u.resolved && (
           <span className="pill pill-danger tab" title="Days open">
             <Clock /> {ageInDays(u.created_at)}d
@@ -100,8 +97,8 @@ export function Card({ card, big }: { card: BoardCard; big?: boolean }) {
             <Smiley />
           </button>
         )}
-      </div>
-      {reactions.size > 0 && (
+      </div>}
+      {reactions.size > 0 && !editing && (
         <div className="rx">
           {[...reactions.entries()].map(([emoji, who]) => (
             <button
@@ -115,37 +112,6 @@ export function Card({ card, big }: { card: BoardCard; big?: boolean }) {
               {who.length > 1 && <span className="tab">{who.length}</span>}
             </button>
           ))}
-        </div>
-      )}
-      {card.toSort && (
-        <div className="carry-bar">
-          <span className="lbl">
-            <ArrowsClockwise /> From {weekLabel(u.sprint_number)}
-          </span>
-          {mine && !big ? (
-            <>
-              <button
-                type="button"
-                className="mini go"
-                onClick={(e) => {
-                  const r = e.currentTarget.getBoundingClientRect();
-                  moveWithFeedback(card, "done", null, { x: r.left + r.width / 2, y: r.top });
-                }}
-              >
-                <Check weight="bold" /> Done
-              </button>
-              <button type="button" className="mini" onClick={() => moveWithFeedback(card, "doing", null)}>
-                Keep
-              </button>
-              <button type="button" className="mini" aria-label="Drop this card" onClick={() => showToast("Dropped", dropCard(u))}>
-                <X />
-              </button>
-            </>
-          ) : (
-            <span className="lbl" style={{ margin: 0 }}>
-              Waiting for {firstName(person?.name)}
-            </span>
-          )}
         </div>
       )}
       {picking && (
@@ -208,7 +174,7 @@ function Editor({ card, mine, history }: { card: BoardCard; mine: boolean; histo
           </div>
           <textarea
             className="field"
-            rows={3}
+            rows={6}
             placeholder="Details (optional)"
             aria-label="Card text"
             value={text}

@@ -23,8 +23,6 @@ type UIState = {
   fresh: string | null;
   /** Cards someone else just added (pop in as they arrive). */
   arrived: Record<string, true>;
-  /** The start-of-week "how did last week go?" prompt is open. */
-  catchUp: boolean;
   /** Right-hand panel folded down to a slim rail (remembered per device). */
   sideCollapsed: boolean;
 };
@@ -53,7 +51,6 @@ export const useUI = create<UIState>(() => ({
   dateForm: null,
   fresh: null,
   arrived: {},
-  catchUp: false,
   sideCollapsed: readSide(),
 }));
 

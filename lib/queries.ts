@@ -107,19 +107,6 @@ export function sprintOfTimestamp(iso: string): number {
   return currentSprintNumber(new Date(iso));
 }
 
-const OPEN_STATUSES = new Set(["not_started", "in_progress"]);
-
-export function isOpenPlanned(u: Update): boolean {
-  return u.type === "planned" && OPEN_STATUSES.has(u.status ?? "in_progress");
-}
-
-/** Planned items from earlier sprints that nobody has closed yet. */
-export function carryCandidates(db: DB, personId: string, n: number): Update[] {
-  return Object.values(db.updates)
-    .filter((u) => u.person_id === personId && u.sprint_number < n && isOpenPlanned(u))
-    .sort((a, b) => b.sprint_number - a.sprint_number || a.created_at.localeCompare(b.created_at));
-}
-
 export function points(size: Size | null): number {
   return size === "L" ? 3 : size === "M" ? 2 : 1;
 }

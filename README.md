@@ -14,15 +14,15 @@ Everything is on one page:
 
 ## How it works (for the team)
 
-1. Open the link and tap your name (or **Add person** if you're new). The device remembers you. Tap your face in the top right to switch.
+1. Open the link and tap your name (or **Add person** if you're new). The device remembers you. Tap your face in the top right and choose **Sign out** to leave.
 2. On any project, click **Add a card** under Done, Doing or Blocked. Type a line and press **Enter**; the form stays open for the next one. A task name, size (S/M/L) and due date are optional.
    - S = under a day, M = a few days, L = most of the week or more.
    - Sub-projects (like Astro › Boxless) have their own title row. Hover it to add a card there.
    - Hover a **task name** (the bold line above its cards) and click **Add card** to add another card to that same task.
 3. **Drag cards** between columns, projects or tasks. Drop a card onto another task's name or cards to re-file it under that task. On a phone, drag by the dotted handle. Every move can be undone. To re-file your own card without dragging, open it and change its **Task**.
-4. The first time you open the board each week, a **Last week check-in** asks how your unfinished cards went: **Done**, **Keep** for this week, or **Drop**. Closing it with **Later** is fine; the same cards sit in **Doing** marked "From Oct Week 3" with the same buttons.
+4. Each week starts with a clean board: nothing is brought over automatically from the week before. Add what you're working on in **Doing**. The only thing that carries forward is a **blocker** nobody has marked resolved, which stays on the board until someone does.
 5. Click a project's header to collapse or expand it. **Collapse all / Expand all** sits in the filter bar.
-6. Filter by **Person**, **Project** or **Status** (overdue, due soon, stuck, from last sprint, blocked), or use **Only me** and the search box.
+6. Filter by **Person**, **Project** or **Status** (overdue, due in 3 days, open blockers), or use **Only me** and the search box.
 7. On Tuesday, open **Present** on the big screen. Arrow keys move between slides, **A** adds an action item, **Esc** closes.
 
 Weeks run **Wednesday to Tuesday** and are named by month, like **Oct Week 4 (21–27 Oct)**. A week belongs to the month that holds most of its days, so 30 Sep – 6 Oct is Oct Week 1. A week opens on its Tuesday check-in day, so cards can be added before or during the meeting.
@@ -91,7 +91,7 @@ Then open http://localhost:3000.
 - **Logos and photos** are shrunk to a small image and saved with the project or person, so there's no file storage to set up.
 - **Important dates/info**: add a date (it shows until its day has passed, then drops off) or leave the date empty to add a note for the week you're viewing. Notes without a date stay in that week and aren't brought over to the next one. Past weeks show what was still ahead at the time.
 - **Roles and Settings**: only the design lead (Ryann) and admins (Elaine and Tasha) see the Settings gear. Change someone's role in Settings → People. This keeps everyday users away from project and people management; it is not a security lock, because there are still no accounts and anyone with the link can edit the data.
-- **Your colour**: click your face in the top right to pick your blob's colour, or to switch person.
+- **Your colour**: click your face in the top right to pick your blob's colour, or to sign out.
 - **Action items** can have several owners.
 - **Ongoing projects**: pin a project in Settings (the pin icon) and it always has a lane on the board, even in a week with no cards. KULT Campaigns & Projects, Collabrium, Astro Universe, Portals and Ad hoc are pinned. Unpinned projects with no cards show as small "No cards yet" chips.
 - **Adding and removing**: Settings has an **Add** form for projects and people. **Remove** hides a project or person; their cards stay in past weeks, and you can restore them from the **Removed** list. Something with no cards at all can be deleted for good.
@@ -102,7 +102,7 @@ Then open http://localhost:3000.
 - Next.js (App Router) + TypeScript, plain CSS in `app/globals.css` built on the Collabrium design tokens (`app/collabrium-tokens.css`), Mulish, Phosphor icons.
 - Form controls follow the Collabrium DLS: `Select`, `Combobox` and `DatePicker` in `components/fields.tsx`, drawn in a shared `Popover` that renders above everything. Don't use native `<select>` or `<input type="date">`.
 - Data goes through `lib/store.ts` → a small backend interface in `lib/backend/` (Supabase with realtime, or the browser-only demo). Screens never call Supabase directly.
-- `lib/board.ts` turns updates into board cards and holds the move/carry logic. View state (filters, collapsed lanes, open card) lives in `lib/ui-store.ts`.
+- `lib/board.ts` turns updates into board cards and holds the move logic. View state (filters, collapsed lanes, open card) lives in `lib/ui-store.ts`.
 - **Later: Slack.** `buildSprintSummary()` and `buildReminderMessage()` in `lib/summary.ts` are pure functions; a scheduled route can post them to a Slack webhook.
 - **Later: real sign-in.** "Who am I" comes only from `getCurrentPersonId()` / `setCurrentPerson()` in `lib/store.ts`. Replace those with the signed-in user and tighten the Row Level Security policies in `supabase/schema.sql`.
 - Checks: `npm run typecheck`, `npm run lint`, `npm run build`.

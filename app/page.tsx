@@ -2,8 +2,6 @@
 
 import { useEffect } from "react";
 import { Board } from "@/components/board/Board";
-import { CatchUp, catchUpSeen, markCatchUpSeen } from "@/components/board/CatchUp";
-import { useBoard } from "@/components/board/useBoard";
 import { Filters } from "@/components/board/Filters";
 import { PageHead } from "@/components/board/PageHead";
 import { Present } from "@/components/board/Present";
@@ -17,17 +15,6 @@ import { cx } from "@/components/ui";
 export default function BoardPage() {
   const present = useUI((s) => s.present);
   const sideCollapsed = useUI((s) => s.sideCollapsed);
-  const catchUp = useUI((s) => s.catchUp);
-  const { me, n, current, cards } = useBoard();
-  const waiting = n === current ? cards.filter((c) => c.toSort && c.u.person_id === me).length : 0;
-
-  // Once a week, when someone first opens the board with unfinished cards from last week, ask about them.
-  useEffect(() => {
-    if (!waiting || !me || catchUpSeen(me, current)) return;
-    markCatchUpSeen(me, current);
-    setUI({ catchUp: true });
-  }, [waiting, me, current]);
-
   // Esc closes an open card or add-card form. ← → change week. ⌘P / Ctrl+P presents.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -68,7 +55,6 @@ export default function BoardPage() {
         </main>
         <Side />
       </div>
-      {catchUp && !present && <CatchUp />}
       {present && <Present />}
     </>
   );
