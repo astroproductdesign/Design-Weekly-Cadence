@@ -4,7 +4,7 @@ The design team's weekly check-in board. It replaces the FigJam board where some
 
 Everything is on one page:
 
-- **The board**: one lane per project (sub-projects sit inside their parent), split into **Done** (last week), **Doing** (this week) and **Blocked**. Everyone's cards are visible; you add your own right where they belong.
+- **The board**: one lane per project (sub-projects sit inside their parent), split into **Done** (last week), **Doing** (this week) and **Blocked**. Everyone's cards are visible; you add your own right where they belong. Done, Doing and Blocked have solid coloured headers over tinted columns, and each task is one card with everyone's items listed inside it.
 - **Important dates/info**, **Open blockers** and **Action items** in the panel on the right. Fold it into a slim rail (the icon at its top) when you want more room for the board.
 - **Present** for the Tuesday meeting, and **Settings** for projects and people.
 
@@ -15,7 +15,7 @@ Everything is on one page:
 ## How it works (for the team)
 
 1. Open the link and tap your name (or **Add person** if you're new). The device remembers you. Tap your face in the top right and choose **Sign out** to leave.
-2. On any project, click **Add a card** under Done, Doing or Blocked. Type a line and press **Enter**; the form stays open for the next one. A task name, size (S/M/L) and due date are optional.
+2. On any project, click **Add a card** under Done, Doing or Blocked. Type a **task name** (required: pick an existing one as you type, or type a new name and it's created), add the details if you like, and press **Enter**; the form stays open for the next one. Details, size (S/M/L) and due date are optional.
    - S = under a day, M = a few days, L = most of the week or more.
    - Sub-projects (like Astro › Boxless) have their own title row. Hover it to add a card there.
    - Hover a **task name** (the bold line above its cards) and click **Add card** to add another card to that same task.

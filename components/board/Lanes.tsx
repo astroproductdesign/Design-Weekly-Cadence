@@ -10,20 +10,20 @@ import { Composer } from "./Composer";
 import { useBoard } from "./useBoard";
 
 /** One column of a lane: cards grouped by task, then "Add a card". */
-export function Cell({ lane, col, cards, big, canAdd }: { lane: string; col: Col; cards: BoardCard[]; big?: boolean; canAdd: boolean }) {
+export function Cell({ lane, col, cards, canAdd }: { lane: string; col: Col; cards: BoardCard[]; canAdd: boolean }) {
   const { db, history } = useBoard();
   const group = useUI((s) => s.group);
   const composing = useUI((s) => s.composer?.lane === lane && s.composer.col === col);
   const composerTask = useUI((s) => (s.composer?.lane === lane && s.composer.col === col ? s.composer.task : undefined));
   const title = (c: BoardCard) => db.tasks[c.u.task_id]?.title ?? "";
-  const sorted = [...cards].sort((a, b) => title(a).localeCompare(title(b)) || a.u.person_id.localeCompare(b.u.person_id));
+  // Tasks A to Z; inside a task, items run oldest to newest, so a card you add lands at the bottom.
+  const sorted = [...cards].sort((a, b) => title(a).localeCompare(title(b)) || a.u.created_at.localeCompare(b.u.created_at) || a.u.id.localeCompare(b.u.id));
   const groups: { taskId: string; cards: BoardCard[] }[] = [];
   for (const c of sorted) {
     const g = groups.find((x) => x.taskId === c.u.task_id);
     if (g) g.cards.push(c);
     else groups.push({ taskId: c.u.task_id, cards: [c] });
   }
-  const showTask = group === "project" || big;
   // "Add a card" from a task's own title puts the form right under that task.
   const forGroup = composerTask ? groups.find((g) => (db.tasks[g.taskId]?.title ?? "").toLowerCase() === composerTask.toLowerCase()) : undefined;
 
@@ -35,11 +35,11 @@ export function Cell({ lane, col, cards, big, canAdd }: { lane: string; col: Col
       </div>
       {groups.map((g) => (
         <div className="task-group" key={g.taskId} data-task={group === "project" ? g.taskId : undefined}>
-          {showTask && (g.cards.length > 1 || g.cards.some((c) => c.u.text)) && (
-            <div className="task-label">
+          <div className="task-label">
+              {group === "person" && <span className="task-proj">{db.projects[g.cards[0].u.project_id]?.short_name || db.projects[g.cards[0].u.project_id]?.name}</span>}
               <span className="task-name">{db.tasks[g.taskId]?.title}</span>
               {new Set(g.cards.map((c) => c.u.person_id)).size > 1 && <span className="shared">shared</span>}
-              {canAdd && !big && !history && (
+              {canAdd && !history && (
                 <button
                   type="button"
                   className="task-add"
@@ -50,9 +50,8 @@ export function Cell({ lane, col, cards, big, canAdd }: { lane: string; col: Col
                 </button>
               )}
             </div>
-          )}
           {g.cards.map((c) => (
-            <Card key={c.u.id} card={c} big={big} />
+            <Card key={c.u.id} card={c} />
           ))}
           {forGroup === g && <Composer key={`${lane}-${col}-${composerTask}`} lane={lane} col={col} task={composerTask} />}
         </div>
@@ -70,11 +69,11 @@ export function Cell({ lane, col, cards, big, canAdd }: { lane: string; col: Col
   );
 }
 
-export function Cells({ lane, cards, big, canAdd }: { lane: string; cards: BoardCard[]; big?: boolean; canAdd: boolean }) {
+export function Cells({ lane, cards, canAdd }: { lane: string; cards: BoardCard[]; canAdd: boolean }) {
   return (
     <div className="lane-body">
       {COLS.map((col) => (
-        <Cell key={col} lane={lane} col={col} cards={cards.filter((c) => c.col === col)} big={big} canAdd={canAdd} />
+        <Cell key={col} lane={lane} col={col} cards={cards.filter((c) => c.col === col)} canAdd={canAdd} />
       ))}
     </div>
   );

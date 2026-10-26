@@ -17,33 +17,32 @@ export function Composer({ lane, col, task: presetTask }: { lane: string; col: C
   const { db, me, n, current } = useBoard();
   const byProject = !!db.projects[lane];
   const [projectId, setProjectId] = useState(() => (byProject ? lane : usualProjectIds(db, me, n)[0] ?? projectsInOrder(db)[0]?.id ?? ""));
-  const [task, setTask] = useState(() => {
-    if (presetTask) return presetTask;
-    const mineHere = Object.values(db.updates).filter((u) => u.person_id === me && u.project_id === projectId && u.sprint_number === n && u.text);
-    return mineHere.length ? db.tasks[mineHere[mineHere.length - 1].task_id]?.title ?? "" : "";
-  });
+  // The task is required and starts empty (unless you came from a task's own "Add card"): pick one that exists or type a new name.
+  const [task, setTask] = useState(presetTask ?? "");
+  const [invalid, setInvalid] = useState(false);
   const [text, setText] = useState("");
   const [size, setSize] = useState<Size | null>(null);
   const [due, setDue] = useState("");
   const [help, setHelp] = useState("");
   const [added, setAdded] = useState(0);
   const ta = useRef<HTMLTextAreaElement>(null);
+  const taskBox = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    ta.current?.focus();
-  }, []);
+    if (presetTask) ta.current?.focus();
+  }, [presetTask]);
 
   const submit = (e?: React.FormEvent) => {
     e?.preventDefault();
     const t = task.trim();
     const body = text.trim();
-    if (!t && !body) {
-      ta.current?.focus();
+    if (!t) {
+      setInvalid(true);
+      taskBox.current?.querySelector("input")?.focus();
       return;
     }
-    // No task given: the first line becomes the task, the rest is the note.
-    const title = t || body.split("\n")[0].slice(0, 120);
-    const note = t ? body : body.split("\n").slice(1).join("\n").trim();
+    const title = t.slice(0, 120);
+    const note = body;
     const helpPerson = help && db.people[help] ? help : null;
     const u = addUpdate({
       sprint: n,
@@ -80,15 +79,30 @@ export function Composer({ lane, col, task: presetTask }: { lane: string; col: C
           }))}
         />
       )}
-      <Combobox
-        size="sm"
-        className="task-in"
-        label="Task (optional: pick one or type a new one)"
-        placeholder="Task (optional)"
-        value={task}
-        onChange={setTask}
-        suggestions={tasksForProject(db, projectId).map((t) => t.title)}
-      />
+      <div className="task-field" ref={taskBox}>
+        <label className="label">Task name</label>
+        <Combobox
+          size="sm"
+          chevron={false}
+          invalid={invalid}
+          autoFocus={!presetTask}
+          label="Task name (required). Pick an existing task or type a new one."
+          placeholder="Type a task name, or pick one"
+          value={task}
+          onChange={(v) => {
+            setTask(v);
+            setInvalid(false);
+          }}
+          suggestions={tasksForProject(db, projectId).map((t) => t.title)}
+        />
+        {invalid ? (
+          <p className="field-error" role="alert">
+            Add a task name. Type a new one or pick an existing task.
+          </p>
+        ) : (
+          <p className="composer-hint">Start typing to see existing tasks, or enter a new name.</p>
+        )}
+      </div>
       <textarea
         ref={ta}
         className="field"

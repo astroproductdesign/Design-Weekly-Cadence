@@ -12,12 +12,12 @@ import { setUI, useUI } from "@/lib/ui-store";
 import { Combobox, DatePicker } from "../fields";
 import { RichText } from "../RichText";
 import { showToast } from "../Toaster";
-import { Avatar, cx, DueChip, firstName, pc, SizeDots, Sizes } from "../ui";
+import { Avatar, cx, DueChip, firstName, SizeDots, Sizes } from "../ui";
 import { moveWithFeedback, useBoard } from "./useBoard";
 
-const EMOJI = ["👍", "🎉", "👀", "🙌", "❤️", "🔥"];
+export const EMOJI = ["👍", "🎉", "👀", "🙌", "❤️", "🔥"];
 
-export function Card({ card, big }: { card: BoardCard; big?: boolean }) {
+export function Card({ card }: { card: BoardCard }) {
   const { db, me, history } = useBoard();
   const group = useUI((s) => s.group);
   const open = useUI((s) => s.open === card.u.id);
@@ -26,7 +26,6 @@ export function Card({ card, big }: { card: BoardCard; big?: boolean }) {
   const [picking, setPicking] = useState(false);
   const u = card.u;
   const project = db.projects[u.project_id];
-  const parent = project?.parent_id ? db.projects[project.parent_id] : null;
   const person = db.people[u.person_id];
   const task = db.tasks[u.task_id];
   const mine = u.person_id === me;
@@ -43,7 +42,6 @@ export function Card({ card, big }: { card: BoardCard; big?: boolean }) {
   return (
     <article
       className={cx("card", blocked && "blocked", u.resolved && "resolved", open && "is-open", fresh && "is-new", arrived && "is-arrived", history && "readonly")}
-      style={pc(project?.color ?? parent?.color)}
       data-card={u.id}
       tabIndex={0}
       aria-label={`${person?.name}: ${u.text || task?.title}. ${project?.name}. ${COL_META[card.col].label}. Press Enter to open.`}
@@ -64,56 +62,58 @@ export function Card({ card, big }: { card: BoardCard; big?: boolean }) {
         if (e.key === "Escape") setUI({ open: null });
       }}
     >
-      {group === "person" && !big && (
-        <div className="proj-tag meta">
-          {project?.short_name || project?.name} · {task?.title}
-        </div>
-      )}
       {!history && (
         <span className="handle" data-handle title="Drag to move" aria-hidden>
           <DotsSixVertical />
         </span>
       )}
-      {!editing && <div className="card-text">{u.text ? <RichText text={u.text} /> : task?.title}</div>}
-      {blocked && help && !editing && (
-        <div className="help">
-          <HandWaving /> Needs {help}
+      <div className="row-main">
+        <Avatar person={person} size={26} />
+        <div className="row-body">
+          <div className="row-who">
+            <b>{firstName(person?.name)}</b>
+            {!history && (
+              <button type="button" className="rx-add" aria-label="Add reaction" aria-expanded={picking} onClick={() => setPicking(!picking)}>
+                <Smiley />
+              </button>
+            )}
+          </div>
+          {/* The task name is the card's heading, so a row only shows its own words. */}
+          {!editing && u.text && <div className="card-text"><RichText text={u.text} /></div>}
+          {blocked && help && !editing && (
+            <div className="help">
+              <HandWaving /> Needs {help}
+            </div>
+          )}
+          {!editing && (u.size || u.due_date || (blocked && !u.resolved)) && (
+            <div className="card-foot">
+              {u.size && <SizeDots size={u.size} />}
+              <DueChip due={u.due_date} done={card.col === "done"} />
+              {blocked && !u.resolved && (
+                <span className="pill pill-danger tab" title="Days open">
+                  <Clock /> {ageInDays(u.created_at)}d
+                </span>
+              )}
+            </div>
+          )}
+          {reactions.size > 0 && !editing && (
+            <div className="rx">
+              {[...reactions.entries()].map(([emoji, who]) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  className={who.includes(me) ? "mine" : ""}
+                  title={who.map((w) => db.people[w]?.name).join(", ")}
+                  onClick={() => !history && toggleReaction("update", u.id, emoji)}
+                >
+                  {emoji}
+                  {who.length > 1 && <span className="tab">{who.length}</span>}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-      )}
-      {!editing && <div className="card-foot">
-        <span className="who">
-          <Avatar person={person} size={big ? 26 : 20} />
-          {firstName(person?.name)}
-        </span>
-        {u.size && <SizeDots size={u.size} />}
-        <DueChip due={u.due_date} done={card.col === "done"} />
-        {blocked && !u.resolved && (
-          <span className="pill pill-danger tab" title="Days open">
-            <Clock /> {ageInDays(u.created_at)}d
-          </span>
-        )}
-        {!history && !big && (
-          <button type="button" className="rx-add" aria-label="Add reaction" aria-expanded={picking} onClick={() => setPicking(!picking)}>
-            <Smiley />
-          </button>
-        )}
-      </div>}
-      {reactions.size > 0 && !editing && (
-        <div className="rx">
-          {[...reactions.entries()].map(([emoji, who]) => (
-            <button
-              key={emoji}
-              type="button"
-              className={who.includes(me) ? "mine" : ""}
-              title={who.map((w) => db.people[w]?.name).join(", ")}
-              onClick={() => !history && toggleReaction("update", u.id, emoji)}
-            >
-              {emoji}
-              {who.length > 1 && <span className="tab">{who.length}</span>}
-            </button>
-          ))}
-        </div>
-      )}
+      </div>
       {picking && (
         <div className="rx-pick" onMouseLeave={() => setPicking(false)}>
           {EMOJI.map((emoji) => (
@@ -161,11 +161,12 @@ function Editor({ card, mine, history }: { card: BoardCard; mine: boolean; histo
       {mine && !history ? (
         <>
           <div className="editor-field">
-            <span className="label">Task</span>
+            <span className="label">Task name</span>
             <Combobox
               size="sm"
-              label="Task this card belongs to"
-              placeholder="Task name"
+              chevron={false}
+              label="Task name. Pick an existing task or type a new one."
+              placeholder="Type a task name, or pick one"
               value={task}
               onChange={setTask}
               onBlur={commit}

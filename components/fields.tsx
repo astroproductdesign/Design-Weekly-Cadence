@@ -259,10 +259,17 @@ export function Combobox({
   size = "md",
   className,
   onBlur,
+  chevron = true,
+  invalid,
+  autoFocus,
 }: {
   value: string;
   onChange: (v: string) => void;
   onBlur?: () => void;
+  /** Hide the dropdown arrow when the field is really a text box that only suggests. */
+  chevron?: boolean;
+  invalid?: boolean;
+  autoFocus?: boolean;
   suggestions: string[];
   placeholder?: string;
   label: string;
@@ -279,9 +286,11 @@ export function Combobox({
   const showing = open && options.length > 0;
 
   return (
-    <div ref={wrap} className={cx("c-select c-combo", size, showing && "open", value && "filled", className)}>
+    <div ref={wrap} className={cx("c-select c-combo", size, showing && "open", value && "filled", invalid && "invalid", className)}>
       <input
         role="combobox"
+        autoFocus={autoFocus}
+        aria-invalid={invalid || undefined}
         aria-label={label}
         aria-expanded={showing}
         aria-controls={showing ? id : undefined}
@@ -291,10 +300,10 @@ export function Combobox({
         value={value}
         onChange={(e) => {
           onChange(e.target.value);
-          setOpen(true);
+          // Suggestions show once you start typing, not as soon as the field is focused.
+          setOpen(e.target.value.trim().length > 0);
           setActive(-1);
         }}
-        onFocus={() => setOpen(true)}
         onBlur={() => {
           setOpen(false);
           onBlur?.();
@@ -319,7 +328,7 @@ export function Combobox({
           } else if (e.key === "Tab") setOpen(false);
         }}
       />
-      <CaretDown className="c-select-chev" aria-hidden onClick={() => setOpen(!open)} />
+      {chevron && <CaretDown className="c-select-chev" aria-hidden onClick={() => setOpen(!open)} />}
       {showing && (
         <Popover anchor={wrap} onClose={() => setOpen(false)} matchWidth role="presentation">
           <Rows

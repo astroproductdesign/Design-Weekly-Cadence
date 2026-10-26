@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowsOut, CalendarPlus, CaretLeft, CaretRight, ListChecks, Plus, X } from "@phosphor-icons/react";
-import { addActionItem } from "@/lib/actions";
+import { ArrowsOut, CalendarPlus, Smiley, CaretLeft, CaretRight, ListChecks, Plus, X } from "@phosphor-icons/react";
+import { addActionItem, toggleReaction } from "@/lib/actions";
 import { activePeople } from "@/lib/queries";
 import { COL_META, COLS, type BoardCard, type Col } from "@/lib/board";
 import { importantItems, projectTree } from "@/lib/queries";
@@ -13,20 +13,66 @@ import { showToast } from "../Toaster";
 import { RichText } from "../RichText";
 import { Avatar, ColIcon, DueChip, firstName, Logo, pc, SizeDots } from "../ui";
 import { MultiSelect } from "../fields";
+import { EMOJI } from "./Card";
 import { ActionItems, AgendaItem, DateForm } from "./Side";
 import { useBoard } from "./useBoard";
+
+/** Emoji reactions on a line, big enough to read from across the room. Anyone can add or remove theirs. */
+function PresentReactions({ id }: { id: string }) {
+  const { db, me } = useBoard();
+  const [picking, setPicking] = useState(false);
+  const by = new Map<string, string[]>();
+  for (const r of Object.values(db.reactions)) if (r.target_id === id) by.set(r.emoji, [...(by.get(r.emoji) ?? []), r.person_id]);
+  return (
+    <div className={by.size === 0 && !picking ? "pt-rx bare" : "pt-rx"}>
+      {[...by.entries()].map(([emoji, who]) => (
+        <button
+          key={emoji}
+          type="button"
+          className={who.includes(me) ? "mine" : ""}
+          title={who.map((w) => db.people[w]?.name).join(", ")}
+          aria-label={`${emoji} from ${who.map((w) => firstName(db.people[w]?.name)).join(", ")}`}
+          onClick={() => toggleReaction("update", id, emoji)}
+        >
+          <span>{emoji}</span>
+          {who.length > 1 && <b className="tab">{who.length}</b>}
+        </button>
+      ))}
+      {picking ? (
+        EMOJI.filter((e) => !by.has(e)).map((emoji) => (
+          <button
+            key={emoji}
+            type="button"
+            className="pick"
+            aria-label={`React ${emoji}`}
+            onClick={() => {
+              toggleReaction("update", id, emoji);
+              setPicking(false);
+            }}
+          >
+            <span>{emoji}</span>
+          </button>
+        ))
+      ) : (
+        <button type="button" className="add" aria-label="Add a reaction" onClick={() => setPicking(true)}>
+          <Smiley />
+        </button>
+      )}
+    </div>
+  );
+}
 
 /** One column of a project slide: tasks as plain headings with a card count, and each person's line under them. */
 function TaskColumn({ col, cards, tasks }: { col: Col; cards: BoardCard[]; tasks: Record<string, { title: string }> }) {
   const { db } = useBoard();
   const groups: { id: string; cards: BoardCard[] }[] = [];
-  for (const c of [...cards].sort((a, b) => (tasks[a.u.task_id]?.title ?? "").localeCompare(tasks[b.u.task_id]?.title ?? ""))) {
+  for (const c of [...cards].sort((a, b) => (tasks[a.u.task_id]?.title ?? "").localeCompare(tasks[b.u.task_id]?.title ?? "") || a.u.created_at.localeCompare(b.u.created_at) || a.u.id.localeCompare(b.u.id))) {
     const g = groups.find((x) => x.id === c.u.task_id);
     if (g) g.cards.push(c);
     else groups.push({ id: c.u.task_id, cards: [c] });
   }
   return (
-    <div className="pt-col">
+    <div className="pt-col" data-col={col}>
       {groups.length === 0 && <p className="pt-empty">{COL_META[col].empty}</p>}
       {groups.map((g) => (
         <section className="pt-task" key={g.id}>
@@ -44,6 +90,7 @@ function TaskColumn({ col, cards, tasks }: { col: Col; cards: BoardCard[]; tasks
                         <RichText text={u.text} />
                       </span>
                     )}
+                    <PresentReactions id={u.id} />
                     <span className="pt-meta">
                       {u.size && <SizeDots size={u.size} />}
                       <DueChip due={u.due_date} done={col === "done"} />
@@ -200,7 +247,7 @@ export function Present() {
             <div className="pt" style={pc(s.p.color)}>
               <div className="pt-heads">
                 {COLS.map((col) => (
-                  <div className="pt-head" key={col}>
+                  <div className="pt-head" key={col} data-col={col}>
                     <ColIcon col={col} size={26} />
                     <b>{COL_META[col].label}</b>
                     <span className="meta">{COL_META[col].sub}</span>

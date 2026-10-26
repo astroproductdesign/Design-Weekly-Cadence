@@ -21,26 +21,41 @@ function linkify(text: string): ReactNode[] {
 const BULLET = /^\s*[-*•]\s+/;
 
 export function RichText({ text }: { text: string }) {
-  const out: ReactNode[] = [];
+  // Blank lines the writer typed are kept as spacing (leading and trailing ones are dropped).
+  type Item = { kind: "gap" } | { kind: "line"; node: ReactNode } | { kind: "list"; items: string[] };
+  const items: Item[] = [];
   let bullets: string[] = [];
-  const flush = (key: number) => {
-    if (!bullets.length) return;
-    out.push(
-      <ul key={`ul${key}`}>
-        {bullets.map((b, i) => (
-          <li key={i}>{linkify(b)}</li>
-        ))}
-      </ul>,
-    );
+  const flush = () => {
+    if (bullets.length) items.push({ kind: "list", items: bullets });
     bullets = [];
   };
-  text.split("\n").forEach((line, i) => {
+  text.split("\n").forEach((line) => {
     if (BULLET.test(line)) bullets.push(line.replace(BULLET, ""));
     else {
-      flush(i);
-      if (line.trim()) out.push(<span key={i} style={{ display: "block" }}>{linkify(line)}</span>);
+      flush();
+      items.push(line.trim() ? { kind: "line", node: linkify(line) } : { kind: "gap" });
     }
   });
-  flush(-1);
-  return <>{out}</>;
+  flush();
+  while (items.length && items[0].kind === "gap") items.shift();
+  while (items.length && items[items.length - 1].kind === "gap") items.pop();
+  return (
+    <>
+      {items.map((it, i) =>
+        it.kind === "gap" ? (
+          <span key={i} className="rt-gap" aria-hidden />
+        ) : it.kind === "list" ? (
+          <ul key={i}>
+            {it.items.map((b, j) => (
+              <li key={j}>{linkify(b)}</li>
+            ))}
+          </ul>
+        ) : (
+          <span key={i} className="rt-line">
+            {it.node}
+          </span>
+        ),
+      )}
+    </>
+  );
 }

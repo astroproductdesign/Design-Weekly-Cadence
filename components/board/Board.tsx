@@ -107,7 +107,7 @@ function ColumnHeads({ cards }: { cards: BoardCard[] }) {
   return (
     <div className="colheads reveal" style={{ ["--i" as string]: 2 }} aria-hidden>
       {COLS.map((col) => (
-        <div className="colhead" key={col}>
+        <div className="colhead" key={col} data-col={col}>
           <ColIcon col={col} />
           <b>{COL_META[col].label}</b>
           <span className="meta">{COL_META[col].sub}</span>
