@@ -31,6 +31,7 @@ export function Blob({
   className?: string;
 }) {
   const picked = useStore((s) => s.db.people[id]?.blob_color);
+  const lead = useStore((s) => s.db.people[id]?.role === "lead");
   const { color, v } = blobOf(id, picked);
   const ink = "var(--blob-ink)";
   const fill = `var(--p-${color})`;
@@ -40,8 +41,9 @@ export function Blob({
 
   if (face) {
     return (
-      <svg className={`blob ${className}`} viewBox="16 10 68 64" width={size} height={size} aria-hidden style={{ flex: "none" }}>
+      <svg className={`blob ${className}`} viewBox="16 10 68 64" width={size} height={size} aria-hidden style={{ flex: "none", overflow: "visible" }}>
         <rect x="18" y="12" width="64" height="60" rx="26" fill={fill} />
+        {lead && <path d="M36 14 l-2 -11 l10 7 l6 -9 l6 9 l10 -7 l-2 11 z" fill="var(--p-amber)" stroke={ink} strokeWidth={2.4} strokeLinejoin="round" />}
         <circle cx="42" cy={eyeY + 4} r="3.4" fill={ink} />
         <circle cx="58" cy={eyeY + 4} r="3.4" fill={ink} />
         <path d={browLeft ? "M36 31 l9 -2" : "M55 29 l9 2"} {...line} strokeWidth={3} />
@@ -76,6 +78,9 @@ export function Blob({
       <path d={arms[1]} {...line} />
       <path d="M42 72 C41 86 45 96 40 110 M40 110 h-8 M58 72 C59 86 55 96 60 110 M60 110 h8" {...line} />
       <rect x="20" y="14" width="60" height="60" rx="25" fill={fill} />
+      {lead && (
+        <path d="M34 15 l-2 -14 l12 8 l6 -11 l6 11 l12 -8 l-2 14 z" fill="var(--p-amber)" stroke={ink} strokeWidth={2.2} strokeLinejoin="round" />
+      )}
       <circle cx="43" cy={eyeY} r="2.8" fill={ink} />
       <circle cx="57" cy={eyeY} r="2.8" fill={ink} />
       <path d={browLeft ? "M38 28 l7 -1.6" : "M55 26.4 l7 1.6"} {...line} />

@@ -736,3 +736,18 @@ textarea.field:focus { padding: 7px 9px; }
 .cell + .cell { border-left: 0; }
 .cell { border-radius: 0 0 14px 14px; }
 @media (max-width: 760px) { .lane-body { gap: 10px; } .cell { border-radius: 14px; } }
+
+/* Instant tooltips (names on emoji, effort on size). The browser's own title tooltip is slow. */
+[data-tip] { position: relative; }
+[data-tip]:hover::after, [data-tip]:focus-visible::after {
+  content: attr(data-tip); position: absolute; z-index: 60; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  width: max-content; max-width: 220px; white-space: pre-line; text-align: left; pointer-events: none;
+  background: var(--ink); color: var(--surface); font-size: 12px; line-height: 16px; font-weight: 700; padding: 6px 10px; border-radius: 8px; box-shadow: var(--sh-3);
+}
+.row-who [data-tip]:hover::after { left: auto; right: -4px; transform: none; }
+.pt-rx [data-tip]:hover::after { font-size: 14px; line-height: 20px; max-width: 280px; }
+
+/* Size dots sit on the name line, away from the description. */
+.row-who .row-size { margin-left: auto; display: inline-flex; padding: 4px 0; }
+.row-who .row-size + .rx-add { margin-left: 4px; }
+.pt-who { display: flex; align-items: center; gap: 10px; }

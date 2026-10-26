@@ -95,11 +95,13 @@ export function DueChip({ due, done }: { due: string | null; done?: boolean }) {
 
 const SIZE_N: Record<Size, number> = { S: 1, M: 2, L: 3 };
 const SIZE_NAME: Record<Size, string> = { S: "Small", M: "Medium", L: "Large" };
+const SIZE_EFFORT: Record<Size, string> = { S: "Under a day of effort", M: "A few days of effort", L: "Most of the week or more" };
+export const sizeTip = (s: Size) => `${SIZE_NAME[s]} task\n${SIZE_EFFORT[s]}`;
 
 /** Three dots, filled up to the size: ● ○ ○ small, ● ● ○ medium, ● ● ● large. */
 export function SizeDots({ size }: { size: Size }) {
   return (
-    <span className="size-dots" role="img" aria-label={`${SIZE_NAME[size]} (${SIZE_HELP})`} title={`${SIZE_NAME[size]}: ${SIZE_HELP}`}>
+    <span className="size-dots" role="img" aria-label={`${SIZE_NAME[size]}: ${SIZE_EFFORT[size]}`} data-tip={sizeTip(size)} tabIndex={0}>
       {[1, 2, 3].map((i) => (
         <i key={i} className={i <= SIZE_N[size] ? "on" : ""} />
       ))}
@@ -109,9 +111,9 @@ export function SizeDots({ size }: { size: Size }) {
 
 export function Sizes({ value, onChange }: { value: Size | null; onChange: (s: Size | null) => void }) {
   return (
-    <span className="sizes" role="radiogroup" aria-label="Size (optional)" title={SIZE_HELP}>
+    <span className="sizes" role="radiogroup" aria-label="Size (optional)">
       {(["S", "M", "L"] as Size[]).map((s) => (
-        <button key={s} type="button" role="radio" aria-checked={value === s} aria-label={SIZE_NAME[s]} title={`${SIZE_NAME[s]}: ${SIZE_HELP}`} onClick={() => onChange(value === s ? null : s)}>
+        <button key={s} type="button" role="radio" aria-checked={value === s} aria-label={`${SIZE_NAME[s]}: ${SIZE_EFFORT[s]}`} data-tip={sizeTip(s)} onClick={() => onChange(value === s ? null : s)}>
           {s}
         </button>
       ))}

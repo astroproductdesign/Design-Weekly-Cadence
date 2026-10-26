@@ -30,7 +30,7 @@ function PresentReactions({ id }: { id: string }) {
           key={emoji}
           type="button"
           className={who.includes(me) ? "mine" : ""}
-          title={who.map((w) => db.people[w]?.name).join(", ")}
+          data-tip={`${who.map((w) => db.people[w]?.name).join(", ")}\nreacted ${emoji}`}
           aria-label={`${emoji} from ${who.map((w) => firstName(db.people[w]?.name)).join(", ")}`}
           onClick={() => toggleReaction("update", id, emoji)}
         >
@@ -84,7 +84,10 @@ function TaskColumn({ col, cards, tasks }: { col: Col; cards: BoardCard[]; tasks
                 <li key={u.id}>
                   <Avatar person={db.people[u.person_id]} size={30} />
                   <div className="pt-line">
-                    <b>{firstName(db.people[u.person_id]?.name)}</b>
+                    <b className="pt-who">
+                      {firstName(db.people[u.person_id]?.name)}
+                      {u.size && <SizeDots size={u.size} />}
+                    </b>
                     {u.text && (
                       <span className="pt-text">
                         <RichText text={u.text} />
@@ -92,7 +95,6 @@ function TaskColumn({ col, cards, tasks }: { col: Col; cards: BoardCard[]; tasks
                     )}
                     <PresentReactions id={u.id} />
                     <span className="pt-meta">
-                      {u.size && <SizeDots size={u.size} />}
                       <DueChip due={u.due_date} done={col === "done"} />
                       {col === "blocked" && <span className="pill pill-danger">Needs {help || "a hand"}</span>}
                     </span>

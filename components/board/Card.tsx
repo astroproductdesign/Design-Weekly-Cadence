@@ -72,6 +72,7 @@ export function Card({ card }: { card: BoardCard }) {
         <div className="row-body">
           <div className="row-who">
             <b>{firstName(person?.name)}</b>
+            {u.size && <span className="row-size"><SizeDots size={u.size} /></span>}
             {!history && (
               <button type="button" className="rx-add" aria-label="Add reaction" aria-expanded={picking} onClick={() => setPicking(!picking)}>
                 <Smiley />
@@ -85,9 +86,8 @@ export function Card({ card }: { card: BoardCard }) {
               <HandWaving /> Needs {help}
             </div>
           )}
-          {!editing && (u.size || u.due_date || (blocked && !u.resolved)) && (
+          {!editing && (u.due_date || (blocked && !u.resolved)) && (
             <div className="card-foot">
-              {u.size && <SizeDots size={u.size} />}
               <DueChip due={u.due_date} done={card.col === "done"} />
               {blocked && !u.resolved && (
                 <span className="pill pill-danger tab" title="Days open">
@@ -103,7 +103,8 @@ export function Card({ card }: { card: BoardCard }) {
                   key={emoji}
                   type="button"
                   className={who.includes(me) ? "mine" : ""}
-                  title={who.map((w) => db.people[w]?.name).join(", ")}
+                  data-tip={`${who.map((w) => db.people[w]?.name).join(", ")}\nreacted ${emoji}`}
+                  aria-label={`${emoji} from ${who.map((w) => db.people[w]?.name).join(", ")}`}
                   onClick={() => !history && toggleReaction("update", u.id, emoji)}
                 >
                   {emoji}
