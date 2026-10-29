@@ -10,6 +10,7 @@ import { sprintRangeLabel, weekLabel } from "@/lib/sprint";
 import type { Project } from "@/lib/types";
 import { setUI } from "@/lib/ui-store";
 import { showToast } from "../Toaster";
+import { ImageStrip } from "../Images";
 import { RichText } from "../RichText";
 import { Avatar, ColIcon, DueChip, firstName, Logo, pc, SizeDots } from "../ui";
 import { MultiSelect } from "../fields";
@@ -93,6 +94,7 @@ function TaskColumn({ col, cards, tasks }: { col: Col; cards: BoardCard[]; tasks
                         <RichText text={u.text} />
                       </span>
                     )}
+                    <ImageStrip images={u.images} />
                     <PresentReactions id={u.id} />
                     <span className="pt-meta">
                       <DueChip due={u.due_date} done={col === "done"} />

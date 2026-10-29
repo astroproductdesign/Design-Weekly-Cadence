@@ -23,6 +23,8 @@ type UIState = {
   fresh: string | null;
   /** Cards someone else just added (pop in as they arrive). */
   arrived: Record<string, true>;
+  /** Picture viewer: a card's images and which one is showing. */
+  viewer: { images: string[]; index: number } | null;
   /** Right-hand panel folded down to a slim rail (remembered per device). */
   sideCollapsed: boolean;
 };
@@ -51,6 +53,7 @@ export const useUI = create<UIState>(() => ({
   dateForm: null,
   fresh: null,
   arrived: {},
+  viewer: null,
   sideCollapsed: readSide(),
 }));
 

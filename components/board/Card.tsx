@@ -10,6 +10,7 @@ import { dayMonth } from "@/lib/sprint";
 import { deleteRow, patchRow, restoreRow, useStore } from "@/lib/store";
 import { setUI, useUI } from "@/lib/ui-store";
 import { Combobox, DatePicker } from "../fields";
+import { ImageRow, ImageStrip, useImages } from "../Images";
 import { RichText } from "../RichText";
 import { showToast } from "../Toaster";
 import { Avatar, cx, DueChip, firstName, SizeDots, Sizes } from "../ui";
@@ -81,6 +82,7 @@ export function Card({ card }: { card: BoardCard }) {
           </div>
           {/* The task name is the card's heading, so a row only shows its own words. */}
           {!editing && u.text && <div className="card-text"><RichText text={u.text} /></div>}
+          {!editing && <ImageStrip images={u.images} />}
           {blocked && help && !editing && (
             <div className="help">
               <HandWaving /> Needs {help}
@@ -144,6 +146,8 @@ function Editor({ card, mine, history }: { card: BoardCard; mine: boolean; histo
   const taskTitle = db.tasks[u.task_id]?.title ?? "";
   const [text, setText] = useState(shown);
   const [task, setTask] = useState(taskTitle);
+  const pictures = u.images ?? [];
+  const imgs = useImages(pictures, (images) => patchRow("updates", u.id, { images }));
   const commit = () => {
     const v = text.trim();
     if (v !== shown.trim()) patchRow("updates", u.id, { text: v });
@@ -158,7 +162,7 @@ function Editor({ card, mine, history }: { card: BoardCard; mine: boolean; histo
   const edited = u.updated_by && u.updated_at !== u.created_at ? ` · last change by ${firstName(db.people[u.updated_by]?.name)}` : "";
 
   return (
-    <div className="editor" onClick={(e) => e.stopPropagation()}>
+    <div className="editor" onClick={(e) => e.stopPropagation()} {...(mine && !history ? imgs.bind : {})}>
       {mine && !history ? (
         <>
           <div className="editor-field">
@@ -189,6 +193,7 @@ function Editor({ card, mine, history }: { card: BoardCard; mine: boolean; histo
               }
             }}
           />
+          <ImageRow images={pictures} onChange={(images) => patchRow("updates", u.id, { images })} imgs={imgs} />
           <div className="editor-row">
             <Sizes value={u.size} onChange={(size) => patchRow("updates", u.id, { size })} />
             <DatePicker size="sm" label="Due date" placeholder="Due date" value={u.due_date} onChange={(due_date) => patchRow("updates", u.id, { due_date })} />

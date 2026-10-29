@@ -5,6 +5,7 @@ import { CalendarPlus, Clock, GearSix, X } from "@phosphor-icons/react";
 import { currentSprintNumber, dayMs, sprintRangeLabel, todayKL, weekLabel } from "@/lib/sprint";
 import { initStore, useStore } from "@/lib/store";
 import { setUI, useUI } from "@/lib/ui-store";
+import { ImageViewer } from "./Images";
 import { MeMenu } from "./MeMenu";
 import { Settings } from "./Settings";
 import { Toaster } from "./Toaster";
@@ -147,6 +148,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       )}
       {children}
       {settingsOpen && canManage && <Settings />}
+      <ImageViewer />
       <Toaster />
     </>
   );

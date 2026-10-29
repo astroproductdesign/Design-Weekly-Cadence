@@ -93,6 +93,8 @@ create table if not exists updates (
   created_by uuid,
   updated_by uuid
 );
+-- For databases created before cards could carry pictures (safe to run again).
+alter table updates add column if not exists images text[] not null default '{}';
 create index if not exists updates_sprint_idx on updates (sprint_number);
 create index if not exists updates_person_idx on updates (person_id);
 

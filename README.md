@@ -83,6 +83,14 @@ Then open http://localhost:3000.
 
 ---
 
+## Pictures on cards
+
+Cards can carry up to 6 pictures: tap **+ Add** in the add-card form (or in a card you own), drag files onto the form, or paste a screenshot. They're shrunk to 800px and stored in the card itself, so there's no file storage to set up. Click a thumbnail to open the viewer (← → and Esc). Only the card's owner adds or removes pictures; anyone can view.
+
+**One-time database step:** run `supabase/schema.sql` again in the Supabase SQL Editor (it adds an `images` column). Until you do, cards still save, but adding pictures fails.
+
+Keep an eye on size: every card loads for everyone, and each picture adds roughly 40 to 100 KB. If the board ever feels slow after months of picture cards, the fix is to move pictures to Supabase Storage.
+
 ## Secure sign-in (emailed 6-digit code)
 
 Off by default, so nothing changes until you switch it on. When on: you tap your name, a 6-digit code goes to your work email, and only people on the team list get in. The database itself is locked to signed-in team members, not just the screen. Do these in order:

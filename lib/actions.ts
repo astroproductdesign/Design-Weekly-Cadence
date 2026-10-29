@@ -28,6 +28,7 @@ export function addUpdate(input: {
   due: string | null;
   helpFromPersonId?: string | null;
   helpFromText?: string | null;
+  images?: string[];
 }): Update {
   const me = getCurrentPersonId()!;
   return insertRow("updates", {
@@ -47,6 +48,8 @@ export function addUpdate(input: {
     resolved_at: null,
     carried_from_id: null,
     carry_count: 0,
+    // Only sent when there are pictures, so cards still save on a database that hasn't added the column yet.
+    ...(input.images?.length ? { images: input.images } : {}),
   });
 }
 

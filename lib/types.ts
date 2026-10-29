@@ -87,6 +87,8 @@ export type Update = Audit & {
   resolved_at: string | null;
   carried_from_id: string | null;
   carry_count: number; // how many times this item has been carried over
+  /** Pictures attached to the card, shrunk and stored inline as data URLs (up to 6). */
+  images?: string[];
 };
 
 export type Priority = "normal" | "urgent";

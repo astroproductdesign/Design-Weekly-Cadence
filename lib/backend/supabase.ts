@@ -48,7 +48,8 @@ export function createSupabaseBackend(url: string, anonKey: string, requireLogin
       await Promise.all(
         TABLES.map(async (table) => {
           // Page through in case a table grows past the default 1000-row limit.
-          const pageSize = 1000;
+          // Cards can carry pictures, so they load in smaller pages.
+          const pageSize = table === "updates" ? 200 : 1000;
           for (let from = 0; ; from += pageSize) {
             const { data, error } = await client
               .from(table)

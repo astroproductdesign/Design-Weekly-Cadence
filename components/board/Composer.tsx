@@ -9,6 +9,7 @@ import { activePeople, projectsInOrder, tasksForProject, usualProjectIds } from 
 import { setUI } from "@/lib/ui-store";
 import type { Size } from "@/lib/types";
 import { Combobox, DatePicker, Select } from "../fields";
+import { ImageRow, useImages } from "../Images";
 import { Avatar, Logo, Sizes } from "../ui";
 import { useBoard } from "./useBoard";
 
@@ -25,6 +26,8 @@ export function Composer({ lane, col, task: presetTask }: { lane: string; col: C
   const [due, setDue] = useState("");
   const [help, setHelp] = useState("");
   const [added, setAdded] = useState(0);
+  const [images, setImages] = useState<string[]>([]);
+  const imgs = useImages(images, setImages);
   const ta = useRef<HTMLTextAreaElement>(null);
   const taskBox = useRef<HTMLDivElement>(null);
 
@@ -54,10 +57,12 @@ export function Composer({ lane, col, task: presetTask }: { lane: string; col: C
       due: due || null,
       helpFromPersonId: helpPerson,
       helpFromText: help && !helpPerson ? help : null,
+      images,
     });
     setUI({ fresh: u.id });
     setText("");
     setSize(null);
+    setImages([]);
     setDue("");
     setHelp("");
     setAdded((a) => a + 1);
@@ -65,7 +70,7 @@ export function Composer({ lane, col, task: presetTask }: { lane: string; col: C
   };
 
   return (
-    <form className="composer" onSubmit={submit} onKeyDown={(e) => e.key === "Escape" && setUI({ composer: null })}>
+    <form className="composer" onSubmit={submit} {...imgs.bind} onKeyDown={(e) => e.key === "Escape" && setUI({ composer: null })}>
       {!byProject && (
         <Select
           size="sm"
@@ -115,6 +120,7 @@ export function Composer({ lane, col, task: presetTask }: { lane: string; col: C
           if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) submit(e);
         }}
       />
+      <ImageRow images={images} onChange={setImages} imgs={imgs} />
       <div className="composer-row">
         <Sizes value={size} onChange={setSize} />
         <DatePicker size="sm" near={n > current ? sprintDates(n).start_date : undefined} label="Due date (optional)" placeholder="Due date" value={due || null} onChange={(v) => setDue(v ?? "")} style={{ flex: "1 1 120px" }} />
