@@ -181,7 +181,14 @@ function CodeSignIn({ people }: { people: Person[] }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [sending, setSending] = useState(false);
   const [wait, setWait] = useState(0);
+  const codeField = useRef<HTMLInputElement>(null);
+
+  // The field is disabled while the email goes out or a code is being checked; give focus back after.
+  useEffect(() => {
+    if (!busy) codeField.current?.focus();
+  }, [busy]);
 
   useEffect(() => {
     if (wait <= 0) return;
@@ -196,12 +203,19 @@ function CodeSignIn({ people }: { people: Person[] }) {
   };
 
   const send = async (target: Who) => {
+    // Move to the code screen at once; the email takes a few seconds to go out.
+    setWho(target);
+    setMasked(null);
+    setSending(true);
     setBusy(true);
     setError(null);
     const r = await requestCode(target);
     setBusy(false);
-    if (r.error) return setError(r.error);
-    setWho(target);
+    setSending(false);
+    if (r.error) {
+      setWho(null);
+      return setError(r.error);
+    }
     setMasked(r.masked ?? null);
     setCode("");
     setWait(60);
@@ -229,7 +243,11 @@ function CodeSignIn({ people }: { people: Person[] }) {
         </button>
         <h2 id="signin-h">Check your email</h2>
         <p className="sub">
-          {person && <b>{person.name}, </b>}we sent a 6-digit code to {masked ? <b>{masked}</b> : "your work email"}.
+          {sending ? (
+            <>{person && <b>{person.name}, </b>}sending a 6-digit code to your work email…</>
+          ) : (
+            <>{person && <b>{person.name}, </b>}we sent a 6-digit code to {masked ? <b>{masked}</b> : "your work email"}.</>
+          )}
         </p>
         <form
           className="signin-form"
@@ -239,6 +257,7 @@ function CodeSignIn({ people }: { people: Person[] }) {
           }}
         >
           <input
+            ref={codeField}
             className="field code-input"
             autoFocus
             inputMode="numeric"
@@ -260,7 +279,7 @@ function CodeSignIn({ people }: { people: Person[] }) {
             </p>
           )}
           <button className="btn btn-primary" disabled={busy || code.length !== 6}>
-            {busy ? "Checking…" : "Sign in"}
+            {sending ? "Sending code…" : busy ? "Checking…" : "Sign in"}
           </button>
           <button type="button" className="btn btn-ghost btn-sm" disabled={busy || wait > 0} onClick={() => void send(who)}>
             {wait > 0 ? `Send a new code in ${wait}s` : "Send a new code"}
@@ -275,7 +294,6 @@ function CodeSignIn({ people }: { people: Person[] }) {
       <h2 id="signin-h">Who&apos;s checking in?</h2>
       <p className="sub">Tap your name. We&apos;ll email you a 6-digit code.</p>
       <PeopleGrid people={people} onPick={(p) => void send({ personId: p.id })} />
-      {busy && <p className="sub">Sending your code…</p>}
       {error && (
         <p className="field-error" role="alert" style={{ textAlign: "center" }}>
           {error}

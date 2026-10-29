@@ -36,11 +36,15 @@ export async function findPerson(admin: SupabaseClient, personId: unknown): Prom
   return (data as Person | null) ?? null;
 }
 
-/** Send a 6-digit code to the address (creating its sign-in account first, already confirmed). */
+/** Send a 6-digit code to the address. Its sign-in account is created (already confirmed) only the first time. */
 export async function sendCode({ admin, anon }: { admin: SupabaseClient; anon: SupabaseClient }, email: string) {
-  // "Already registered" is expected after the first time, so the error is ignored.
-  await admin.auth.admin.createUser({ email, email_confirm: true });
-  const { error } = await anon.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+  const send = () => anon.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+  let { error } = await send();
+  if (error && error.status === 422) {
+    // No account for this email yet: create it, then send. ("Already registered" can't happen here.)
+    await admin.auth.admin.createUser({ email, email_confirm: true });
+    ({ error } = await send());
+  }
   return error;
 }
 
