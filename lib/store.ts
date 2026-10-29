@@ -83,6 +83,15 @@ function applyRemote(change: Change) {
     if (local?.updated_at && row.updated_at && row.updated_by === me && local.updated_by === me && Date.parse(row.updated_at) < Date.parse(local.updated_at)) return;
     // Someone else's new card: give it a little pop as it lands.
     if (!local && change.table === "updates" && row.updated_by !== me) flash(id);
+    // Postgres leaves big columns it didn't touch (a card's pictures) out of a live update, so a card that just
+    // moved to another task arrives without them. Keep what we already have for any field the update doesn't mention.
+    if (local) {
+      const merged = { ...local, ...change.row } as Tables[TableName] & { images?: string[] | null };
+      // The column can't legitimately be empty-null, so a null or missing value means "not sent", not "cleared" ([] is cleared).
+      const had = (local as { images?: string[] }).images;
+      if (change.table === "updates" && had && !merged.images) merged.images = had;
+      change = { ...change, row: merged as Tables[TableName] };
+    }
   }
   applyChange(change);
 }
