@@ -8,13 +8,13 @@ Everything is on one page:
 - **Important dates/info**, **Open blockers** and **Action items** in the panel on the right. Fold it into a slim rail (the icon at its top) when you want more room for the board.
 - **Present** for the Tuesday meeting, and **Settings** for projects and people.
 
-> ⚠️ **Anyone with the link can see and edit everything.** There are no accounts or passwords. Share the link only inside the team (for example a pinned Slack message) and never post it publicly.
+> ⚠️ **Until secure sign-in is switched on (see below), anyone with the link can see and edit everything.** Share the link only inside the team and never post it publicly. With secure sign-in on, only people on the team list can get in.
 
 ---
 
 ## How it works (for the team)
 
-1. Open the link and tap your name (or **Add person** if you're new). The device remembers you. Tap your face in the top right and choose **Sign out** to leave.
+1. Open the link and tap your name. With secure sign-in on, a 6-digit code is emailed to you; enter it and the device remembers you. New to the team? Ask the design lead or an admin to add you in Settings → People (with your work email). Tap your face in the top right and choose **Sign out** to leave.
 2. On any project, click **Add a card** under Done, Doing or Blocked. Type a **task name** (required: pick an existing one as you type, or type a new name and it's created), add the details if you like, and press **Enter**; the form stays open for the next one. Details, size (S/M/L) and due date are optional.
    - S = under a day, M = a few days, L = most of the week or more.
    - Sub-projects (like Astro › Boxless) have their own title row. Hover it to add a card there.
@@ -83,6 +83,21 @@ Then open http://localhost:3000.
 
 ---
 
+## Secure sign-in (emailed 6-digit code)
+
+Off by default, so nothing changes until you switch it on. When on: you tap your name, a 6-digit code goes to your work email, and only people on the team list get in. The database itself is locked to signed-in team members, not just the screen. Do these in order:
+
+1. **Add the columns and helpers.** Supabase → SQL Editor → run `supabase/schema.sql` again (safe to repeat).
+2. **Load everyone's email.** Run `supabase/emails.local.sql` (kept out of GitHub; copy `supabase/emails.example.sql` to make your own).
+3. **Let Supabase send the emails.** Supabase's built-in sender allows only a few emails an hour, so connect your own (for example a free Resend account): Project Settings → Authentication → SMTP Settings. Then Authentication → Email Templates → **Magic Link**, and put `{{ .Token }}` in the message so the code shows, for example: `Your Design Cadence code is {{ .Token }}`. Under Authentication → Sign In / Providers → Email, set the **OTP expiry to 600** (10 minutes) and **OTP length to 6**.
+4. **Add the server key.** In Vercel → Settings → Environment Variables add `SUPABASE_SERVICE_ROLE_KEY` (Supabase → Project Settings → API → `service_role`; keep it secret, never put it in the browser) and `NEXT_PUBLIC_REQUIRE_LOGIN` = `true`. Redeploy.
+5. **Sign in once** as the design lead or an admin on the live site.
+6. **Lock the database.** Run `supabase/lock-down.sql`. It refuses to run until an admin or lead has signed in, so you can't lock everyone out. After this, nobody without a code can read or change anything.
+
+Changing someone's email: only the design lead or an admin can, in Settings → People (pencil icon, then Save). That signs the person out; their next code goes to the new address. Removing someone in Settings blocks them straight away.
+
+Rules of thumb: only `@astro.com.my` addresses are accepted (change with `ALLOWED_EMAIL_DOMAIN`). Never run `npm run seed` with the anon key after step 6; it needs the service key.
+
 ## Good to know
 
 - **Live updates**: everyone's changes appear as they happen (the dot in the top bar says **Live**). Cards are separate rows, and edits only send the fields that changed, so two people working at once don't overwrite each other's cards. If the connection drops, the app catches up as soon as it's back.
@@ -90,7 +105,7 @@ Then open http://localhost:3000.
 - **Colour** only means something: green = done, blue = in progress, amber = needs attention, red = blocked or overdue. Each project's own colour fills its avatar and shows as a band on its title card; pick it in Settings.
 - **Logos and photos** are shrunk to a small image and saved with the project or person, so there's no file storage to set up.
 - **Important dates/info**: add a date (it shows until its day has passed, then drops off) or leave the date empty to add a note for the week you're viewing. Notes without a date stay in that week and aren't brought over to the next one. Past weeks show what was still ahead at the time.
-- **Roles and Settings**: only the design lead (Ryann) and admins (Elaine and Tasha) see the Settings gear. Change someone's role in Settings → People. This keeps everyday users away from project and people management; it is not a security lock, because there are still no accounts and anyone with the link can edit the data.
+- **Roles and Settings**: only the design lead (Ryann) and admins (Elaine and Tasha) see the Settings gear. Change someone's role in Settings → People. This keeps everyday users away from project and people management; with secure sign-in on, the database also enforces it: only the design lead and admins can add people or change roles.
 - **Your colour**: click your face in the top right to pick your blob's colour, or to sign out.
 - **Action items** can have several owners.
 - **Ongoing projects**: pin a project in Settings (the pin icon) and it always has a lane on the board, even in a week with no cards. KULT Campaigns & Projects, Collabrium, Astro Universe, Portals and Ad hoc are pinned. Unpinned projects with no cards show as small "No cards yet" chips.

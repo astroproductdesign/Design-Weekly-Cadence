@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type ReactNode } from "react";
-import { ArrowCounterClockwise, CaretDown, Kanban, Plus, PushPin, Trash, UploadSimple, Users, X } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, CaretDown, Kanban, PencilSimple, Plus, PushPin, Trash, UploadSimple, Users, X } from "@phosphor-icons/react";
 import { resetDemoData } from "@/lib/backend/demo";
 import { PROJECT_COLORS } from "@/lib/colors";
 import { imageToDataUrl } from "@/lib/image";
@@ -65,6 +65,60 @@ function NameInput({ value, label, onSave, small }: { value: string; label: stri
   );
 }
 
+/** A person's sign-in email: read-only until the pencil is clicked, then Save or Cancel. */
+function EmailEdit({ person, onSave }: { person: Person; onSave: (email: string) => string | null }) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const start = () => {
+    setValue(person.email ?? "");
+    setError(null);
+    setEditing(true);
+  };
+  const save = () => {
+    const mail = value.trim().toLowerCase();
+    if (mail === (person.email ?? "").toLowerCase()) return setEditing(false);
+    if (!/^[^\s@]+@astro\.com\.my$/.test(mail)) return setError("Use a work email (@astro.com.my).");
+    const problem = onSave(mail);
+    if (problem) setError(problem);
+    else setEditing(false);
+  };
+  if (!editing)
+    return (
+      <span className="set-email">
+        <span className="set-email-text" title={person.email ?? undefined}>
+          {person.email || "No email yet"}
+        </span>
+        <button type="button" className="icon-btn sm" aria-label={`Edit email for ${person.name}`} title="Edit email" onClick={start}>
+          <PencilSimple />
+        </button>
+      </span>
+    );
+  return (
+    <form
+      className="set-email-edit"
+      onSubmit={(e) => {
+        e.preventDefault();
+        save();
+      }}
+      onKeyDown={(e) => e.key === "Escape" && (e.stopPropagation(), setEditing(false))}
+    >
+      <input className="field" type="email" autoFocus aria-label={`Work email for ${person.name}`} value={value} onChange={(e) => setValue(e.target.value)} />
+      <button type="submit" className="btn btn-primary btn-sm">
+        Save
+      </button>
+      <button type="button" className="btn btn-ghost btn-sm" onClick={() => setEditing(false)}>
+        Cancel
+      </button>
+      {error && (
+        <p className="field-error" role="alert">
+          {error}
+        </p>
+      )}
+    </form>
+  );
+}
+
 /** "Remove X?" strip under a row, so nothing disappears on a single stray click. */
 function ConfirmRemove({ text, onCancel, onConfirm }: { text: string; onCancel: () => void; onConfirm: () => void }) {
   return (
@@ -86,6 +140,8 @@ const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
 export function Settings() {
   const db = useStore((s) => s.db);
   const mode = useStore((s) => s.mode);
+  const authOn = useStore((s) => s.authOn);
+  const [email, setEmail] = useState("");
   const [tab, setTab] = useState<"projects" | "people">("projects");
   const [name, setName] = useState("");
   const [parent, setParent] = useState("");
@@ -124,10 +180,14 @@ export function Settings() {
       });
       showToast(`${clean} added. Pick a colour and upload a logo.`);
     } else {
-      insertRow("people", { id: newId(), name: clean, avatar_url: null, blob_color: null, role, active: true, sort_order: people.length + 1 });
+      const mail = email.trim().toLowerCase();
+      if (authOn && !/^[^\s@]+@astro\.com\.my$/.test(mail)) return showToast("Add their work email (@astro.com.my) so they can sign in.");
+      if (authOn && people.some((p) => p.email?.toLowerCase() === mail)) return showToast("Someone already has that email.");
+      insertRow("people", { id: newId(), name: clean, avatar_url: null, blob_color: null, role, active: true, sort_order: people.length + 1, email: authOn ? mail : null });
       showToast(`${firstName(clean)} added`);
     }
     setName("");
+    setEmail("");
   };
 
   // Removing hides a project or person but keeps their cards in past weeks.
@@ -205,7 +265,10 @@ export function Settings() {
               ) : (
                 <Select label="Role" value={role} onChange={setRole} options={ROLES} style={{ flex: "1 1 120px", width: "auto" }} />
               )}
-              <button className="btn btn-primary" style={{ height: 40 }} disabled={!name.trim()}>
+              {tab === "people" && authOn && (
+                <input className="field" type="email" style={{ flex: "2 1 180px" }} placeholder="name@astro.com.my" aria-label="Their work email (the sign-in code goes here)" value={email} onChange={(e) => setEmail(e.target.value)} />
+              )}
+              <button className="btn btn-primary" style={{ height: 40 }} disabled={!name.trim() || (tab === "people" && authOn && !email.trim())}>
                 <Plus weight="bold" /> Add
               </button>
             </div>
@@ -286,7 +349,20 @@ export function Settings() {
                     <ImageUpload label={`Upload photo for ${p.name}`} round onPick={(avatar_url) => patchRow("people", p.id, { avatar_url })}>
                       <Avatar person={p} size={32} />
                     </ImageUpload>
-                    <NameInput value={p.name} label="Name" onSave={(v) => patchRow("people", p.id, { name: v })} />
+                    <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+                      <NameInput value={p.name} label="Name" onSave={(v) => patchRow("people", p.id, { name: v })} />
+                      {authOn && (
+                        <EmailEdit
+                          person={p}
+                          onSave={(mail) => {
+                            if (people.some((o) => o.id !== p.id && o.email?.toLowerCase() === mail)) return "Someone already has that email.";
+                            patchRow("people", p.id, { email: mail });
+                            showToast(`${firstName(p.name)}'s email updated. They'll sign in with a code sent there.`);
+                            return null;
+                          }}
+                        />
+                      )}
+                    </div>
                     <Select size="sm" label={`Role for ${p.name}`} value={p.role} onChange={(r) => patchRow("people", p.id, { role: r })} options={ROLES} style={{ width: 140, flex: "none" }} />
                     <button type="button" className="icon-btn sm" aria-label={`Remove ${p.name}`} title="Remove person" onClick={() => setConfirming(p.id)}>
                       <Trash />

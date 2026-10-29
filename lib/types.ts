@@ -19,6 +19,10 @@ export type Person = Audit & {
   blob_color: ProjectColor | null;
   active: boolean;
   sort_order: number;
+  /** Work email the sign-in code goes to. Only used when sign-in is switched on. */
+  email?: string | null;
+  /** The sign-in account linked to this person (set by the server on first sign-in). */
+  auth_user_id?: string | null;
 };
 
 export type ProjectColor =

@@ -23,6 +23,10 @@ create table if not exists people (
 alter table people drop constraint if exists people_role_check;
 alter table people add constraint people_role_check check (role in ('member', 'lead', 'admin'));
 alter table people add column if not exists blob_color text;
+-- Sign-in: the work email a code is sent to, and the account it links to (see supabase/lock-down.sql).
+alter table people add column if not exists email text;
+alter table people add column if not exists auth_user_id uuid unique;
+create unique index if not exists people_email_key on people (lower(email));
 
 -- Projects ------------------------------------------------------------------
 create table if not exists projects (
@@ -150,10 +154,34 @@ create table if not exists settings (
   updated_by uuid
 );
 
+-- Sign-in helpers -------------------------------------------------------------
+-- Safe to run with or without sign-in switched on. They only matter once
+-- supabase/lock-down.sql has been run.
+create or replace function public.current_person() returns uuid
+language sql stable security definer set search_path = public as $$
+  select id from people where auth_user_id = auth.uid() and active limit 1
+$$;
+
+create or replace function public.current_role_name() returns text
+language sql stable security definer set search_path = public as $$
+  select role from people where auth_user_id = auth.uid() and active limit 1
+$$;
+
+-- The sign-in screen lists names before anyone is signed in. This returns only
+-- names, roles and colours of active people who have an email. Never emails.
+create or replace function public.login_people() returns table (id uuid, name text, role text, blob_color text)
+language sql stable security definer set search_path = public as $$
+  select p.id, p.name, p.role, p.blob_color from people p
+  where p.active and p.email is not null order by p.sort_order, p.name
+$$;
+
+revoke all on function public.current_person(), public.current_role_name(), public.login_people() from public;
+grant execute on function public.current_person(), public.current_role_name(), public.login_people() to anon, authenticated;
+
 -- Access --------------------------------------------------------------------
--- There are no user accounts: anyone with the app link can read and edit.
--- Row Level Security is switched on with an "allow everyone" policy so the
--- public (anon) key works, and so real rules can be added later.
+-- Until sign-in is switched on, anyone with the app link can read and edit:
+-- Row Level Security has an "allow everyone" policy so the public (anon) key
+-- works. supabase/lock-down.sql replaces it with "signed-in team members only".
 do $$
 declare t text;
 begin

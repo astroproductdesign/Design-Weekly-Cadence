@@ -44,3 +44,6 @@ next-env.d.ts
 
 # local tooling
 /.claude
+
+# real email addresses stay out of GitHub
+/supabase/emails.local.sql

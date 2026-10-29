@@ -171,7 +171,7 @@ img { max-width: 100%; }
 @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 50%, transparent); } 50% { box-shadow: 0 0 0 4px transparent; } }
 .me-btn { display: flex; align-items: center; gap: 8px; padding: 2px 12px 2px 4px; margin-left: 4px; border-radius: 999px; font-weight: 700; font-size: 13px; }
 .me-btn:hover, .me-btn.open { background: var(--sunken); }
-.c-me { width: 248px; }
+.c-me { width: 300px; }
 .me-pop { padding: 16px; display: grid; gap: 12px; }
 .me-pop-head { display: flex; align-items: center; gap: 12px; }
 .me-pop-head .blob { margin-right: 8px; }
@@ -751,3 +751,25 @@ textarea.field:focus { padding: 7px 9px; }
 .row-who .row-size { margin-left: auto; display: inline-flex; padding: 4px 0; }
 .row-who .row-size + .rx-add { margin-left: 4px; }
 .pt-who { display: flex; align-items: center; gap: 10px; }
+
+/* Sign-in by emailed code */
+.signin-form { display: grid; gap: 12px; max-width: 320px; margin: 24px auto 0; text-align: center; }
+.signin .sub { margin-top: 6px; color: var(--muted); font-size: 14px; line-height: 20px; }
+.code-input { text-align: center; font-size: 28px; line-height: 36px; letter-spacing: 0.5em; padding-left: 0.5em; font-weight: 800; font-variant-numeric: tabular-nums; }
+.signin-back { position: absolute; top: 16px; left: 16px; display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 13px; color: var(--muted); padding: 6px 10px; border-radius: 999px; }
+.signin-back:hover { background: var(--sunken); color: var(--ink); }
+.signin-alt { margin-top: 20px; font-size: 13px; font-weight: 700; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+.signin-alt:hover { color: var(--ink); }
+.me-email { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line-soft); }
+.me-email .meta { overflow-wrap: anywhere; }
+.me-email form { display: grid; gap: 8px; }
+.set-email { font-size: 12px; font-weight: 600; color: var(--muted); }
+.set-email { display: inline-flex; align-items: center; gap: 4px; }
+.set-email-edit { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px; }
+.set-email-edit .field { flex: 1 1 200px; height: 32px; font-size: 13px; }
+.set-email-edit .field-error { flex-basis: 100%; }
+.set-email { max-width: 100%; }
+.set-email-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.set-email .icon-btn { flex: none; }
+.drawer-body { overflow-x: hidden; }
+.me-mail { font-size: 12px; white-space: nowrap; }

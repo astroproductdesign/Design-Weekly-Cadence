@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Check, SignOut } from "@phosphor-icons/react";
-import { patchRow, setCurrentPerson } from "@/lib/store";
+import { patchRow, signOut } from "@/lib/store";
 import type { Person } from "@/lib/types";
 import { Blob, blobOf, BLOB_COLOR_NAMES, BLOB_COLORS } from "./Blob";
 import { Popover } from "./Popover";
@@ -35,9 +35,12 @@ export function MeMenu({ me }: { me: Person }) {
               <Blob id={me.id} pose="wave" size={44} />
               <div>
                 <b>{me.name}</b>
-                <p className="meta">Pick your colour</p>
+                {me.email && <p className="meta me-mail">{me.email}</p>}
               </div>
             </div>
+            <p className="label" style={{ margin: "12px 0 6px" }}>
+              Pick your colour
+            </p>
             <div className="me-swatches" role="radiogroup" aria-label="Your colour">
               {BLOB_COLORS.map((c) => (
                 <button
@@ -60,7 +63,7 @@ export function MeMenu({ me }: { me: Person }) {
               className="me-switch"
               onClick={() => {
                 setOpen(false);
-                setCurrentPerson(null);
+                void signOut();
               }}
             >
               <SignOut /> Sign out
@@ -71,3 +74,4 @@ export function MeMenu({ me }: { me: Person }) {
     </>
   );
 }
+

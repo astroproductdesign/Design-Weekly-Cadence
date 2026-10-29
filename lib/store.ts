@@ -3,10 +3,10 @@
 import { create } from "zustand";
 import { createDemoBackend } from "./backend/demo";
 import { createSupabaseBackend } from "./backend/supabase";
-import type { Backend, Change } from "./backend/types";
+import type { AuthApi, Backend, Change } from "./backend/types";
 import { currentSprintNumber, makeSprint, WEEKS_AHEAD } from "./sprint";
 import { setUI, useUI } from "./ui-store";
-import { emptyDB, type DB, type TableName, type Tables } from "./types";
+import { emptyDB, type DB, type Person, type TableName, type Tables } from "./types";
 
 const PERSON_KEY = "cadence-person";
 
@@ -16,6 +16,10 @@ type State = {
   ready: boolean;
   loadError: string | null;
   mode: Backend["mode"] | null;
+  /** Email sign-in is on (the person comes from the session, not a tapped name). */
+  authOn: boolean;
+  /** Sign-in is on and this device has no session yet: show the sign-in screen. */
+  needsLogin: boolean;
   db: DB;
   /** Sprint number the user is browsing on This Week (null = current). */
   viewSprint: number | null;
@@ -34,6 +38,8 @@ export const useStore = create<State>(() => ({
   ready: false,
   loadError: null,
   mode: null,
+  authOn: false,
+  needsLogin: false,
   db: emptyDB(),
   viewSprint: null,
   currentPersonId: null,
@@ -103,6 +109,7 @@ async function resync() {
       if (mine) rows[id] = mine;
       else delete rows[id];
     }
+    if (await removedFromTeam(fresh)) return;
     set({ db: fresh, saveError: null });
   } catch {
     // Still offline; the next reconnect tries again.
@@ -112,7 +119,25 @@ async function resync() {
 function pickBackend(): Backend {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  return url && key ? createSupabaseBackend(url, key) : createDemoBackend();
+  const requireLogin = process.env.NEXT_PUBLIC_REQUIRE_LOGIN === "true";
+  return url && key ? createSupabaseBackend(url, key, requireLogin) : createDemoBackend();
+}
+
+/** The sign-in calls, when email sign-in is on. */
+export function getAuth(): AuthApi | undefined {
+  return backend?.auth;
+}
+
+/**
+ * Signed in, but no longer on the team (removed in Settings): the database now
+ * shows them nothing. Sign them out so they land on the sign-in screen.
+ */
+async function removedFromTeam(db: DB): Promise<boolean> {
+  const me = get().currentPersonId;
+  if (!backend?.auth || !me || db.people[me]?.active) return false;
+  await backend.auth.signOut();
+  location.reload();
+  return true;
 }
 
 /** Make sure every week up to two ahead exists. No cron needed. */
@@ -134,9 +159,25 @@ export async function initStore() {
   try {
     personId = localStorage.getItem(PERSON_KEY);
   } catch {}
-  set({ mode: backend.mode, currentPersonId: personId });
+  set({ mode: backend.mode, authOn: !!backend.auth, currentPersonId: personId });
   try {
+    if (backend.auth) {
+      // With sign-in on, who you are comes from the session, never from a saved name.
+      personId = await backend.auth.currentPerson();
+      set({ currentPersonId: personId });
+      if (!personId) {
+        // Before signing in, the database only shares names, roles and colours.
+        const db = emptyDB();
+        const t = new Date().toISOString();
+        (await backend.auth.loginPeople()).forEach((p, i) => {
+          db.people[p.id] = { id: p.id, name: p.name, role: p.role as Person["role"], blob_color: p.blob_color as Person["blob_color"], avatar_url: null, active: true, sort_order: i, created_at: t, updated_at: t, created_by: null, updated_by: null };
+        });
+        set({ db, needsLogin: true, ready: true });
+        return;
+      }
+    }
     const db = await backend.loadAll();
+    if (await removedFromTeam(db)) return;
     set({ db });
     let wasLive = false;
     unsubscribe = backend.subscribe(applyRemote, (status) => {
@@ -169,6 +210,14 @@ export function teardownStore() {
 /** The one place that knows who "I" am. Swap this for real sign-in later. */
 export function getCurrentPersonId(): string | null {
   return get().currentPersonId;
+}
+
+/** Sign out. With sign-in on this ends the session; otherwise it just forgets the saved name. */
+export async function signOut() {
+  if (backend?.auth) {
+    await backend.auth.signOut();
+    location.reload();
+  } else setCurrentPerson(null);
 }
 
 export function setCurrentPerson(id: string | null) {

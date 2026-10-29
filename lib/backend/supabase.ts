@@ -1,10 +1,11 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { emptyDB, TABLES, type TableName, type Tables } from "../types";
-import type { Backend, Change } from "./types";
+import type { Backend, Change, LoginPerson } from "./types";
 
-export function createSupabaseBackend(url: string, anonKey: string): Backend {
+export function createSupabaseBackend(url: string, anonKey: string, requireLogin = false): Backend {
   const client: SupabaseClient = createClient(url, anonKey, {
-    auth: { persistSession: false },
+    // With sign-in on, the session is kept on the device so people aren't asked for a code every visit.
+    auth: { persistSession: requireLogin, autoRefreshToken: requireLogin },
     realtime: { params: { eventsPerSecond: 20 } },
   });
 
@@ -14,6 +15,33 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
 
   return {
     mode: "supabase",
+
+    auth: requireLogin
+      ? {
+          async currentPerson() {
+            const { data } = await client.auth.getSession();
+            if (!data.session) return null;
+            const { data: id, error } = await client.rpc("current_person");
+            return error ? null : ((id as string | null) ?? null);
+          },
+          async loginPeople() {
+            const { data, error } = await client.rpc("login_people");
+            fail("Loading names", error);
+            return (data ?? []) as LoginPerson[];
+          },
+          async useSession(access, refresh) {
+            const { error } = await client.auth.setSession({ access_token: access, refresh_token: refresh });
+            fail("Signing in", error);
+          },
+          async accessToken() {
+            const { data } = await client.auth.getSession();
+            return data.session?.access_token ?? null;
+          },
+          async signOut() {
+            await client.auth.signOut();
+          },
+        }
+      : undefined,
 
     async loadAll() {
       const db = emptyDB();
