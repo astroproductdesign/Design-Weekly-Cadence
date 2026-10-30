@@ -801,3 +801,38 @@ textarea.field:focus { padding: 7px 9px; }
 .viewer-next { right: 12px; top: 50%; transform: translateY(-50%); }
 .viewer-close { top: 12px; right: 12px; }
 .editor .cimgs { margin-top: 2px; }
+
+/* Weekly Schedule: Mon–Fri across, WFH / On leave / Others down the side, people as letters */
+.panel-head .end .meta { margin-right: 4px; align-self: center; }
+.ocal { display: grid; grid-template-columns: 92px repeat(5, minmax(0, 1fr)); padding: 0 4px; font-size: 12px; line-height: 16px; }
+.ocal > * { min-width: 0; }
+.ocal .hd { text-align: center; font-size: 10px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 6px 0; border-bottom: 1px solid var(--line); }
+.ocal .hd small { display: block; margin-top: 1px; font-size: 11px; font-weight: 700; letter-spacing: 0; color: var(--faint); }
+.ocal .corner { border-bottom: 1px solid var(--line); }
+.ocal .rl { display: flex; align-items: flex-start; gap: 5px; font-weight: 800; padding: 10px 4px 8px 0; line-height: 18px; }
+.ocal .rl .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ocal .oc-cell { display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; gap: 3px; padding: 8px 2px; min-height: 38px; }
+.ocal .rl, .ocal .oc-cell { border-bottom: 1px solid var(--line-soft); }
+.ocal .last { border-bottom: 0; }
+.ocal .none-row { grid-column: 2 / -1; justify-content: flex-start; padding: 10px 8px 8px; font-size: 12px; line-height: 18px; font-weight: 600; color: var(--muted); }
+.ocal .rl.grp, .ocal .oc-cell.grp { border-bottom: 0; min-height: 0; padding-bottom: 2px; }
+.ocal .rl.sub { padding: 7px 4px 7px 10px; font-weight: 600; color: var(--ink-2); line-height: 16px; }
+.ocal .rl.sub .t { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+.ocal .rl.sub, .ocal .oc-cell.sub { border-bottom: 0; }
+.ocal .oc-cell.sub { padding: 4px 2px; min-height: 30px; }
+/* A public holiday reads as a day off: hatched and muted all the way down. */
+.ocal .hcol { background: repeating-linear-gradient(135deg, var(--sunken) 0 6px, #e7e7e7 6px 7px); }
+.ocal .hd.hcol { color: #a3a3a3; text-decoration: line-through; }
+.ocal .lt { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--surface); border: 1.5px solid var(--ink-2); color: var(--ink); font-size: 10px; font-weight: 900; line-height: 1; flex: none; cursor: default; }
+.ocal .ph-mark { display: inline-flex; align-items: center; height: 22px; margin-top: 1px; padding: 0 6px; border-radius: 999px; background: var(--ink-2); color: #fff; font-size: 9px; font-weight: 900; letter-spacing: 0.06em; cursor: default; }
+.ocal .ev-dot { display: block; width: 10px; height: 10px; margin-top: 6px; border-radius: 50%; background: var(--ink); cursor: default; }
+/* Phones have no hover: tapping a letter or mark shows its label too. */
+.ocal [data-tip]:focus::after {
+  content: attr(data-tip); position: absolute; z-index: 60; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  width: max-content; max-width: 220px; white-space: pre-line; text-align: left; pointer-events: none;
+  background: var(--ink); color: var(--surface); font-size: 12px; line-height: 16px; font-weight: 700; padding: 6px 10px; border-radius: 8px; box-shadow: var(--sh-3);
+}
+.ocal-connect { display: grid; gap: 10px; padding: 0 8px 8px; justify-items: start; }
+.ocal-connect p { font-size: 13px; color: var(--ink-2); }
+.ocal-foot { padding: 10px 16px 12px; border-top: 1px solid var(--line-soft); }
+.ocal-foot a { color: var(--ink); font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }

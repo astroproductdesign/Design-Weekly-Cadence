@@ -1,18 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarBlank, CheckCircle, Megaphone, Circle, ListChecks, PencilSimple, Plus, SidebarSimple, Trash, WarningOctagon } from "@phosphor-icons/react";
+import { CalendarBlank, CalendarDots, CheckCircle, Megaphone, Circle, ListChecks, PencilSimple, Plus, SidebarSimple, Trash, WarningOctagon } from "@phosphor-icons/react";
 import { addActionItem, setActionDone } from "@/lib/actions";
 import { confetti } from "@/lib/confetti";
 import { actionItemsForSprint, activePeople, ageInDays, importantItems, projectsInOrder } from "@/lib/queries";
 import { dayMs, daysBetween, relativeDay, todayKL, weekLabel } from "@/lib/sprint";
-import { deleteRow, insertRow, newId, patchRow, restoreRow } from "@/lib/store";
+import { deleteRow, insertRow, newId, patchRow, restoreRow, useStore } from "@/lib/store";
 import type { ActionItem, ImportantDate } from "@/lib/types";
 import { setSideCollapsed, setUI, useUI } from "@/lib/ui-store";
 import { DatePicker, MultiSelect, Select } from "../fields";
 import { RichText } from "../RichText";
 import { showToast } from "../Toaster";
 import { Avatar, ColIcon, cx, DueChip, firstName, Logo, pc } from "../ui";
+import { WeeklySchedule } from "./WeeklySchedule";
 import { useBoard } from "./useBoard";
 
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -30,6 +31,7 @@ export function Side() {
           <SidebarSimple className="flip-x" />
         </button>
       </div>
+      <WeeklySchedule />
       <ImportantDates />
       <Blockers />
       <ActionItems />
@@ -40,6 +42,7 @@ export function Side() {
 /** The collapsed panel: one button per section, with counts. Any of them opens the panel at that section. */
 function SideRail() {
   const { db, n, cards } = useBoard();
+  const online = useStore((s) => s.mode) === "supabase";
   const dates = importantItems(db, n).length;
   const blockers = cards.filter((c) => c.col === "blocked" && !c.u.resolved).length;
   const actions = actionItemsForSprint(db, n).filter((a) => !a.done).length;
@@ -48,6 +51,7 @@ function SideRail() {
     if (id) setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }), 320);
   };
   const items = [
+    ...(online ? [{ id: "cal-h", label: "Weekly Schedule", icon: <CalendarDots />, n: 0, danger: false }] : []),
     { id: "dates-h", label: "Important dates/info", icon: <CalendarBlank />, n: dates, danger: false },
     { id: "blk-h", label: "Open blockers", icon: <ColIcon col="blocked" />, n: blockers, danger: true },
     { id: "act-h", label: "Action items", icon: <ListChecks />, n: actions, danger: false },

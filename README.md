@@ -91,6 +91,19 @@ Cards can carry up to 6 pictures: tap **+ Add** in the add-card form (or in a ca
 
 Keep an eye on size: every card loads for everyone, and each picture adds roughly 40 to 100 KB. If the board ever feels slow after months of picture cards, the fix is to move pictures to Supabase Storage.
 
+## Weekly Schedule (from the Notion leave calendar)
+
+The Overview's **Weekly Schedule** shows who's WFH, on leave, and what else is on, Monday to Friday of the week the board's week starts in. It reads the team's Notion leave calendar live (refreshed every 10 minutes) and adds KL public holidays from Google's public Malaysia holiday calendar. Needs secure sign-in to be on.
+
+How entries are read: the emoji at the start of the name decides the row (🏠 WFH; 🌴 or ✈️ leave), the first word is matched to someone on the board (“Jiayi” finds Jia Yi), and anything else goes under **Others**. Entries about people not on the board are hidden. An entry named after a public holiday (e.g. “Deepavali” on a replacement day) counts as one.
+
+Setting it up:
+
+1. **Make a Notion connection** at notion.so/my-integrations: OAuth, with the redirect URI `https://<your-site>/api/notion/callback` (add `http://localhost:3000/api/notion/callback` too for local testing).
+2. **Run `supabase/notion.sql`** in the Supabase SQL Editor. It makes a locked table for the connection that only the server can read.
+3. **Add to Vercel** → Settings → Environment Variables: `NOTION_CLIENT_ID`, `NOTION_CLIENT_SECRET` (both from the connection's page), and `NOTION_CALENDAR_ID` (the long code in the leave calendar's link). Redeploy.
+4. **Connect once.** Signed in as the design lead or an admin, click **Connect Notion** in Weekly Schedule, tick the leave calendar and allow. The connection belongs to that person's Notion account: if they lose access, reconnect with the ⟳ button.
+
 ## Secure sign-in (emailed 6-digit code)
 
 Off by default, so nothing changes until you switch it on. When on: you tap your name, a 6-digit code goes to your work email, and only people on the team list get in. The database itself is locked to signed-in team members, not just the screen. Do these in order:
