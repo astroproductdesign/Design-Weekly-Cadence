@@ -93,7 +93,7 @@ Keep an eye on size: every card loads for everyone, and each picture adds roughl
 
 ## Weekly Schedule (from the Notion leave calendar)
 
-The Overview's **Weekly Schedule** shows who's WFH, on leave, and what else is on, Monday to Friday of the week the board's week starts in. It reads the team's Notion leave calendar live (refreshed every 10 minutes) and adds KL public holidays from Google's public Malaysia holiday calendar. Needs secure sign-in to be on.
+The Overview's **Weekly Schedule** shows who's WFH, on leave, and what else is on, Monday to Friday of the week the board's week starts in. It reads the team's Notion leave calendar live (new entries show within about 3 minutes, or straight away on returning to the tab once a minute has passed) and adds KL public holidays from Google's public Malaysia holiday calendar. Needs secure sign-in to be on.
 
 How entries are read: the emoji at the start of the name decides the row (🏠 WFH; 🌴 or ✈️ leave), the first word is matched to someone on the board (“Jiayi” finds Jia Yi), and anything else goes under **Others**. Entries about people not on the board are hidden. An entry named after a public holiday (e.g. “Deepavali” on a replacement day) counts as one.
 

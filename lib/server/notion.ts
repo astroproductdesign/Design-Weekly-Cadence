@@ -159,7 +159,7 @@ export async function canSeeCalendar(admin: SupabaseClient) {
 const LEADING_EMOJI = /^\s*((?:\p{Extended_Pictographic}|\p{Regional_Indicator})(?:\uFE0F|\u200D\p{Extended_Pictographic}|\p{Emoji_Modifier})*)\s*/u;
 
 const cache = new Map<string, { at: number; entries: CalendarEntry[] }>();
-const FRESH_MS = 5 * 60_000;
+const FRESH_MS = 60_000; // short, so a new Notion entry shows within a couple of minutes
 
 type Page = { id: string; url: string; icon?: { type: string; emoji?: string } | null; properties: Record<string, { title?: { plain_text: string }[]; date?: { start: string; end: string | null } | null }> };
 

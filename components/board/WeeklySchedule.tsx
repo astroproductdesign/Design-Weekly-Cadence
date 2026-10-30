@@ -12,7 +12,7 @@ import { useBoard } from "./useBoard";
 
 type Reply = { connected: boolean; setUp: boolean; problem?: string; holidays: Holiday[]; entries: CalendarEntry[]; notionUrl?: string };
 
-const REFRESH_MS = 10 * 60_000;
+const REFRESH_MS = 2 * 60_000;
 const memo = new Map<string, { at: number; data: Reply }>();
 
 async function authHeaders(): Promise<HeadersInit> {
@@ -20,7 +20,7 @@ async function authHeaders(): Promise<HeadersInit> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-/** The calendar for from..to, kept for 10 minutes and refetched after that. */
+/** The calendar for from..to: refetched every 2 minutes, and when you come back to the tab. */
 function useCalendar(from: string, to: string) {
   const key = `${from}|${to}`;
   const [state, setState] = useState<{ key: string; data?: Reply; failed?: boolean }>(() => ({ key, data: memo.get(key)?.data }));
@@ -42,7 +42,12 @@ function useCalendar(from: string, to: string) {
     setState({ key, data: hit?.data });
     if (!hit || Date.now() - hit.at > REFRESH_MS) load();
     const t = setInterval(load, REFRESH_MS);
-    return () => clearInterval(t);
+    const back = () => document.visibilityState === "visible" && Date.now() - (memo.get(key)?.at ?? 0) > 30_000 && load();
+    document.addEventListener("visibilitychange", back);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener("visibilitychange", back);
+    };
   }, [key, load]);
 
   return { data: state.key === key ? state.data : undefined, failed: state.key === key && !!state.failed, reload: load };
@@ -193,7 +198,6 @@ export function WeeklySchedule() {
         </span>
         <h2 id="cal-h">Weekly Schedule</h2>
         <span className="end">
-          <span className="meta tab">{rangeLabel(days[0], days[4])}</span>
           {manager && data?.connected && (
             <button type="button" className="icon-btn sm" aria-label="Reconnect Notion" title="Reconnect Notion" onClick={connect}>
               <ArrowsClockwise />
